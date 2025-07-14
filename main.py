@@ -1,13 +1,11 @@
 from fastapi import FastAPI
+from app.api import endpoints_user, endpoints_course, endpoints_dashboard, endpoints_notification, endpoints_class, endpoints_ws
 
 app = FastAPI()
 
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-
-@app.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
+app.include_router(endpoints_user.router)
+app.include_router(endpoints_course.router)
+app.include_router(endpoints_dashboard.router)
+app.include_router(endpoints_notification.router)
+app.include_router(endpoints_class.router)
+app.include_router(endpoints_ws.router)

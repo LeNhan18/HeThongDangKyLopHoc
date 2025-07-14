@@ -1,17 +1,24 @@
+# File: app/database.py
+
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+# THAY ĐỔI Ở ĐÂY: Import declarative_base từ sqlalchemy.orm
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-DATABASE_URL = "mysql+mysqlconnector://root:nhan1811@127.0.0.1:3306/HTDKL"
+# !!! QUAN TRỌNG: Hãy thay đổi các thông số bên dưới cho phù hợp với MySQL của bạn
+DATABASE_URL = "mysql+mysqlconnector://root:nhan1811@localhost:3306/HTDK"
 
+
+# --- Phần còn lại giữ nguyên ---
 engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit =False , autoflush= False , bind= engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Sử dụng hàm đã import
 Base = declarative_base()
 
-#Dependency de lay DB trong moi request
+# Dependency để lấy DB session trong mỗi request
 def get_db():
     db = SessionLocal()
     try:
-        yield
+        yield db
     finally:
         db.close()
