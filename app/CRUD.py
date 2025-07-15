@@ -2,12 +2,12 @@
 
 from sqlalchemy.orm import Session
 from app.models.user import User
-from app.models.class import Class
+from app.models.class_model import Class
 from app.models.course import Course
 from app.models.registration import Registration
 from app.models.history import ClassHistory
 from app.schemas.user import UserCreate
-from app.schemas.class import ClassCreate
+from app.schemas.class_schema import ClassCreate
 from app.schemas.course import CourseCreate
 from app.core.security import get_password_hash
 

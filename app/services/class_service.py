@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.class import Class
+from app.models.class_model import Class
 from app.models.registration import Registration
 from app.models.history import ClassHistory
 

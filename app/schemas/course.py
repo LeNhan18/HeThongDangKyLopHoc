@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List
-from .class import Class
+from .class_schema import Class
 
 class CourseBase(BaseModel):
     name: str

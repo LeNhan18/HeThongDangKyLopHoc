@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models.class import Class
+from app.models.class_model import Class
 from app.models.user import User
 from app.models.registration import Registration
 
