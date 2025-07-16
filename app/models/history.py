@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
 
@@ -10,6 +9,4 @@ class ClassHistory(Base):
     changed_by = Column(Integer, ForeignKey("users.id"))
     change_type = Column(String(255))
     change_time = Column(DateTime, default=datetime.utcnow)
-    note = Column(String(1000), nullable=True)
-    class_ = relationship("Class")
-    user = relationship("User") 
+    note = Column(String(1000), nullable=True) 
