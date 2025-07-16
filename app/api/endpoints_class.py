@@ -1,7 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException
 from app.database import get_db
-from app.schemas.class_schema import Class, ClassCreate, ClassBase
 from app.schemas.user import User
 from app.CRUD import *
 
