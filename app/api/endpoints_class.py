@@ -1,7 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 from app.database import get_db
+from app.schemas.class_schema import Class, ClassCreate, ClassBase
 from app.schemas.user import User
 from app.CRUD import *
+from app.models.class_model import Class as ClassModel
 
 router = APIRouter()
 
@@ -48,4 +51,25 @@ def get_class_history(class_id: int, db: Session = Depends(get_db), user: User =
     if user.role not in ["teacher", "admin"]:
         raise HTTPException(status_code=403, detail="Chỉ giảng viên hoặc quản trị mới được xem lịch sử thay đổi.")
     histories = get_class_histories(db, class_id)
-    return histories 
+    return histories
+
+@router.put("/class/{class_id}", response_model=Class)
+def update_class(class_id: int, class_data: ClassCreate, db: Session = Depends(get_db)):
+    db_class = db.query(ClassModel).filter(ClassModel.id == class_id).first()
+    if not db_class:
+        raise HTTPException(status_code=404, detail="Không tìm thấy lớp học")
+    db_class.name = class_data.name
+    db_class.max_students = class_data.max_students
+    db_class.schedule = class_data.schedule
+    db.commit()
+    db.refresh(db_class)
+    return db_class
+
+@router.delete("/class/{class_id}")
+def delete_class(class_id: int, db: Session = Depends(get_db)):
+    db_class = db.query(ClassModel).filter(ClassModel.id == class_id).first()
+    if not db_class:
+        raise HTTPException(status_code=404, detail="Không tìm thấy lớp học")
+    db.delete(db_class)
+    db.commit()
+    return {"message": "Đã xóa lớp học thành công"} 
