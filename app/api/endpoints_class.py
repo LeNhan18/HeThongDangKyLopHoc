@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.class_schema import Class, ClassCreate, ClassBase
+from app.schemas.class_schema import Class as ClassSchema, ClassCreate, ClassBase
 from app.schemas.user import User
 from app.CRUD import *
 from app.models.class_model import Class as ClassModel
@@ -14,17 +14,17 @@ def get_current_user():
 
 @router.post("/register_class/{class_id}")
 def register_class(class_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    if user.role != "student":
+    if user.role != "student":  # type: ignore
         raise HTTPException(status_code=403, detail="Chỉ học viên mới được đăng ký lớp.")
     class_obj = get_class_by_id(db, class_id)
     if not class_obj:
         raise HTTPException(status_code=404, detail="Không tìm thấy lớp học.")
-    if check_schedule_conflict(db, user.id, class_obj.schedule):
+    if check_schedule_conflict(db, user.id, class_obj.schedule):  # type: ignore
         raise HTTPException(status_code=400, detail="Bạn đã đăng ký lớp khác trùng lịch.")
-    reg = create_registration(db, student_id=user.id, class_id=class_id)
+    reg = create_registration(db, user.id, class_id)  # type: ignore
     if not reg:
         raise HTTPException(status_code=400, detail="Đã đăng ký lớp này rồi.")
-    create_class_history(db, class_id=class_id, changed_by=user.id, change_type="register", note="Đăng ký lớp")
+    create_class_history(db, class_id=class_id, changed_by=user.id, change_type="register", note="Đăng ký lớp")  # type: ignore
     count = count_students_in_class(db, class_id)
     return {"message": "Đăng ký thành công", "current_count": count}
 
@@ -41,9 +41,9 @@ def change_class_schedule(class_id: int, new_schedule: str, db: Session = Depend
     if not class_obj:
         raise HTTPException(status_code=404, detail="Không tìm thấy lớp học.")
     old_schedule = class_obj.schedule
-    class_obj.schedule = new_schedule
+    class_obj.schedule = new_schedule  # type: ignore
     db.commit()
-    create_class_history(db, class_id=class_id, changed_by=user.id, change_type="update_schedule", note=f"Đổi lịch từ {old_schedule} sang {new_schedule}")
+    create_class_history(db, class_id=class_id, changed_by=user.id, change_type="update_schedule", note=f"Đổi lịch từ {old_schedule} sang {new_schedule}")  # type: ignore
     return {"message": "Đã thay đổi lịch học", "old_schedule": old_schedule, "new_schedule": new_schedule}
 
 @router.get("/class/{class_id}/history")
@@ -53,20 +53,28 @@ def get_class_history(class_id: int, db: Session = Depends(get_db), user: User =
     histories = get_class_histories(db, class_id)
     return histories
 
-@router.put("/class/{class_id}", response_model=Class)
-def update_class(class_id: int, class_data: ClassCreate, db: Session = Depends(get_db)):
+@router.post("/class/", response_model=ClassSchema)
+def create_class(class_data: ClassCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    db_class = ClassModel(**class_data.model_dump())
+    db.add(db_class)
+    db.commit()
+    db.refresh(db_class)
+    return ClassSchema.from_orm(db_class)
+
+@router.put("/class/{class_id}", response_model=ClassSchema)
+def update_class(class_id: int, class_data: ClassCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     db_class = db.query(ClassModel).filter(ClassModel.id == class_id).first()
     if not db_class:
         raise HTTPException(status_code=404, detail="Không tìm thấy lớp học")
-    db_class.name = class_data.name
-    db_class.max_students = class_data.max_students
-    db_class.schedule = class_data.schedule
+    db_class.name = class_data.name  # type: ignore
+    db_class.max_students = class_data.max_students  # type: ignore
+    db_class.schedule = class_data.schedule  # type: ignore
     db.commit()
     db.refresh(db_class)
-    return db_class
+    return ClassSchema.from_orm(db_class)
 
 @router.delete("/class/{class_id}")
-def delete_class(class_id: int, db: Session = Depends(get_db)):
+def delete_class(class_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     db_class = db.query(ClassModel).filter(ClassModel.id == class_id).first()
     if not db_class:
         raise HTTPException(status_code=404, detail="Không tìm thấy lớp học")
