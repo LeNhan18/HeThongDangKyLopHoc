@@ -32,27 +32,6 @@ from app.models import feedback
 from app.models import history
 from app.models import registration
 from app.models import notification
-# Giả sử các file model ca bạn nằm trong thư mục app/models/
-print("Bắt đầu quá trình import models...")
-try:
-    from app.models import user
-
-    print("-> Import 'user' thành công.")
-    from app.models import role
-
-    print("-> Import 'role' thành công.")
-    from app.models import user_role
-
-    print("-> Import 'user_role' thành công.")
-    # Bổ sung các model khác ở đây...
-    # Ví dụ:
-    # from app.models import class_model
-    # print("-> Import 'class_model' thành công.")
-
-    print("--- Hoàn tất import models ---")
-except ImportError as e:
-    print(f"\n!!! LỖI IMPORT NGAY LẬP TỨC: {e}\n")
-
 # ... (phần còn lại của file)
 if __name__ == "__main__":
     print("\nBắt đầu tạo các bảng trong database...")

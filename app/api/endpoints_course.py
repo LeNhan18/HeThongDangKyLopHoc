@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.course import Course, CourseCreate
 from app.CRUD import create_course, get_courses, get_course
+from app.models.course import Course as CourseModel
 
 router = APIRouter()
 
@@ -19,4 +20,24 @@ def get_course_detail(course_id: int, db: Session = Depends(get_db)):
     course = get_course(db, course_id)
     if not course:
         raise HTTPException(status_code=404, detail="Không tìm thấy khóa học")
-    return course 
+    return course
+
+@router.put("/courses/{course_id}", response_model=Course)
+def update_course(course_id: int, course: CourseCreate, db: Session = Depends(get_db)):
+    db_course = db.query(CourseModel).filter(CourseModel.id == course_id).first()
+    if not db_course:
+        raise HTTPException(status_code=404, detail="Không tìm thấy khóa học")
+    db_course.name = course.name
+    db_course.description = course.description
+    db.commit()
+    db.refresh(db_course)
+    return db_course
+
+@router.delete("/courses/{course_id}")
+def delete_course(course_id: int, db: Session = Depends(get_db)):
+    db_course = db.query(CourseModel).filter(CourseModel.id == course_id).first()
+    if not db_course:
+        raise HTTPException(status_code=404, detail="Không tìm thấy khóa học")
+    db.delete(db_course)
+    db.commit()
+    return {"message": "Đã xóa khóa học thành công"} 
