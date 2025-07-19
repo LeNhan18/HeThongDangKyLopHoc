@@ -1,10 +1,15 @@
-body, html, #root, .main-bg {
-  height: 100%;
+body, html, #root {
+  min-height: 100vh;
   margin: 0;
   padding: 0;
+  background: #f5f6fa;
   font-family: 'Segoe UI', Arial, sans-serif;
-  background: linear-gradient(135deg, #232526 0%, #414345 100%);
-  color: #f5f5f5;
+}
+
+/* Xóa style cũ nếu có */
+.main-bg {
+  background: #f5f6fa;
+  min-height: 100vh;
 }
 
 .header {
