@@ -5,6 +5,7 @@ from .class_schema import Class
 class CourseBase(BaseModel):
     name: str
     description: Optional[str] = None
+    image :Optional[str] =None
 
 class CourseCreate(CourseBase):
     pass
