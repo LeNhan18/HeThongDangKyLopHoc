@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.api import endpoints_user, endpoints_course, endpoints_dashboard, endpoints_notification, endpoints_class, endpoints_ws
+from app.api import endpoints_user, endpoints_course, endpoints_dashboard, endpoints_notification, endpoints_class, endpoints_ws,endpoints_lesson,endpoints_section
 from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
@@ -9,6 +9,10 @@ app.include_router(endpoints_dashboard.router)
 app.include_router(endpoints_notification.router)
 app.include_router(endpoints_class.router)
 app.include_router(endpoints_ws.router)
+
+app.include_router(endpoints_lesson)
+
+app.include_router(endpoints_section)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # hoặc ["http://localhost:3000"] để bảo mật hơn
