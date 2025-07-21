@@ -10,9 +10,9 @@ app.include_router(endpoints_notification.router)
 app.include_router(endpoints_class.router)
 app.include_router(endpoints_ws.router)
 
-app.include_router(endpoints_lesson)
+app.include_router(endpoints_lesson.router)
 
-app.include_router(endpoints_section)
+app.include_router(endpoints_section.router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
