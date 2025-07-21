@@ -15,7 +15,7 @@ app.include_router(endpoints_lesson)
 app.include_router(endpoints_section)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # hoặc ["http://localhost:3000"] để bảo mật hơn
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
