@@ -5,7 +5,9 @@ import { FaUser } from "react-icons/fa";
 export default function CourseCard({ course }) {
   return (
     <div className="course-card">
-      <div className="course-img" />
+      <div className="course-img">
+        {course.image && <img src = {course.image} alt= {course.name} />}
+        </div>
       <div className="course-info">
         <h3>{course.name}</h3>
         <p>{course.description}</p>
