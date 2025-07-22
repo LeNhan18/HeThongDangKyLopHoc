@@ -1,16 +1,49 @@
-import React from "react";
+import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import { Header, Hero, Stats, CourseList, Footer } from "./components";
+import AuthPage from "./pages/AuthPage";
 import "./App.css";
 
-function App() {
+function HomePage({ user, onRequireAuth }) {
   return (
-    <div>
+    <>
       <Header />
       <Hero />
       <Stats />
-      <CourseList />
+      <CourseList user={user} onRequireAuth={onRequireAuth} />
       <Footer />
-    </div>
+    </>
+  );
+}
+
+function App() {
+  const [user, setUser] = useState(null);
+
+  return (
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <HomePage
+              user={user}
+              onRequireAuth={() => window.location.href = "/auth"}
+            />
+          }
+        />
+        <Route
+          path="/auth"
+          element={
+            <AuthPage
+              onAuthSuccess={userData => {
+                setUser(userData);
+                window.location.href = "/";
+              }}
+            />
+          }
+        />
+      </Routes>
+    </Router>
   );
 }
 

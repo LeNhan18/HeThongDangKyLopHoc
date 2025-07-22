@@ -3,7 +3,7 @@ import axios from "axios";
 import CourseCard from "./CourseCard";
 import "./CourseList.css";
 
-export default function CourseList() {
+export default function CourseList({ user, onRequireAuth }) {
   const [courses, setCourses] = useState([]);
   const [search, setSearch] = useState("");
 
@@ -32,7 +32,14 @@ export default function CourseList() {
         {filtered.length === 0 ? (
           <div>Không có khóa học nào.</div>
         ) : (
-          filtered.map(course => <CourseCard key={course.id} course={course} />)
+          filtered.map(course => (
+            <CourseCard
+              key={course.id}
+              course={course}
+              user={user}
+              onRequireAuth={onRequireAuth}
+            />
+          ))
         )}
       </div>
     </section>

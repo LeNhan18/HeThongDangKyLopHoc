@@ -1,6 +1,7 @@
 from fastapi import FastAPI
-from app.api import endpoints_user, endpoints_course, endpoints_dashboard, endpoints_notification, endpoints_class, endpoints_ws,endpoints_lesson,endpoints_section
+from app.api import endpoints_user, endpoints_course, endpoints_dashboard, endpoints_notification, endpoints_class, endpoints_ws,endpoints_lesson,endpoints_section,auth
 from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
 
 app.include_router(endpoints_user.router)
@@ -9,13 +10,15 @@ app.include_router(endpoints_dashboard.router)
 app.include_router(endpoints_notification.router)
 app.include_router(endpoints_class.router)
 app.include_router(endpoints_ws.router)
+app.include_router(endpoints_lesson.router)
+app.include_router(endpoints_section.router)
 
-app.include_router(endpoints_lesson)
+# Thêm prefix và tags cho auth router
+app.include_router(auth.router, tags=["Authentication"])
 
-app.include_router(endpoints_section)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # hoặc ["http://localhost:3000"] để bảo mật hơn
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
