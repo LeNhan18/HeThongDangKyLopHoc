@@ -42,4 +42,4 @@ def get_user_by_email(db: Session, email: str):
 
 def get_all_users(db: Session):
     users = db.query(UserModel).all()
-    return [UserSchema.model_validate(u) for u in users] 
+    return [UserSchema.model_validate(u) for u in users]
