@@ -3,14 +3,17 @@ import { useNavigate } from "react-router-dom";
 import "./CourseCard.css";
 import { FaUser } from "react-icons/fa";
 
-export default function CourseCard({ course, user }) {
+export default function CourseCard({ course, user, onEdit, onDelete, onRegister }) {
   const navigate = useNavigate();
 
   const handleDetail = () => {
+    navigate(`/courses/${course.id}`);
+  };
+  const handleRegister = () => {
     if (!user) {
       navigate("/auth");
     } else {
-      alert("Xem chi tiết khóa học: " + course.name);
+      onRegister && onRegister(course);
     }
   };
 
@@ -28,6 +31,21 @@ export default function CourseCard({ course, user }) {
         <button className="enroll-btn" onClick={handleDetail}>
           Xem chi tiết
         </button>
+        {user && user.role === "student" && (
+          <button className="enroll-btn" style={{background:'#4f8cff',marginLeft:8}} onClick={handleRegister}>
+            Đăng ký khóa học
+          </button>
+        )}
+        {user && (user.role === "teacher" || user.role === "admin") && (
+          <>
+            <button className="enroll-btn" style={{background:'#888',marginLeft:8}} onClick={() => onEdit && onEdit(course)}>
+              Sửa
+            </button>
+            <button className="enroll-btn" style={{background:'#e74c3c',marginLeft:8}} onClick={() => onDelete && onDelete(course)}>
+              Xóa
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
