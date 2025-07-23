@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./AuthForm.css";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,13 @@ export default function AuthForm({ onAuthSuccess }) {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
+  const [roles, setRoles] = useState([]);
+
+  useEffect(() => {
+    if (!isLogin) {
+      axios.get("http://localhost:8000/roles/").then(res => setRoles(res.data));
+    }
+  }, [isLogin]);
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -100,10 +107,11 @@ export default function AuthForm({ onAuthSuccess }) {
           {fieldErrors.password && <div className="auth-msg" style={{marginTop:4}}>{fieldErrors.password}</div>}
           {!isLogin && (
             <>
-              <select name="role" value={form.role} onChange={handleChange}>
-                <option value="student">Học viên</option>
-                <option value="teacher">Giảng viên</option>
-                <option value="admin">Quản trị</option>
+              <select name="role" value={form.role} onChange={handleChange} required>
+                <option value="">-- Chọn vai trò --</option>
+                {roles.map(role => (
+                  <option key={role.id} value={role.name}>{role.name}</option>
+                ))}
               </select>
               {fieldErrors.role && <div className="auth-msg" style={{marginTop:4}}>{fieldErrors.role}</div>}
             </>

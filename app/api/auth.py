@@ -12,7 +12,12 @@ def login(email: str = Form(...), password: str = Form(...), db: Session = Depen
     user = db.query(UserModel).filter(UserModel.email == email).first()
     if not user or user.hashed_password != get_password_hash(password):
         raise HTTPException(status_code=401, detail="Sai email hoặc mật khẩu")
-    return {"id": user.id, "email": user.email, "role": user.role, "is_active": user.is_active}
+    return {
+        "id": user.id,
+        "email": user.email,
+        "roles": [r.name for r in user.roles],
+        "is_active": user.is_active
+    }
 
 @router.get("/test-auth")
 def test_auth():
