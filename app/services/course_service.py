@@ -2,6 +2,9 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.models.course import Course as CourseModel
 from app.schemas.course import Course as CourseSchema, CourseCreate
+from app.services.section_service import get_sections_by_course
+from app.services.lesson_service import get_lessons_by_section
+from app.schemas.section import SectionWithLessons
 
 def create_course(db: Session, course: CourseCreate):
     db_course = CourseModel(name=course.name, description=course.description)
@@ -32,8 +35,18 @@ def get_course(db: Session, course_id: int):
     db_course = db.query(CourseModel).filter(CourseModel.id == course_id).first()
     if not db_course:
         raise HTTPException(status_code=404, detail="Không tìm thấy khóa học")
-    return CourseSchema.model_validate(db_course)
+    course_data = CourseSchema.model_validate(db_course).model_dump()
+    # Lấy danh sách sections
+    sections = get_sections_by_course(db, course_id)
+    section_with_lessons = []
+    for section in sections:
+        lessons = get_lessons_by_section(db, section.id)
+        section_dict = section.model_dump()
+        section_dict["lessons"] = lessons
+        section_with_lessons.append(SectionWithLessons(**section_dict))
+    course_data["sections"] = section_with_lessons
+    return CourseSchema(**course_data)
 
 def get_courses(db: Session):
     courses = db.query(CourseModel).all()
-    return [CourseSchema.model_validate(c) for c in courses] 
+    return [CourseSchema.model_validate(c) for c in courses]

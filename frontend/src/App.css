@@ -49,7 +49,7 @@ body, html, #root {
 .hero p {
   font-size: 1.3rem;
   margin-bottom: 32px;
-  color: #e0e0e0;
+  color: #000000;
 }
 .cta-btn {
   display: inline-block;

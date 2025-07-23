@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
+from .lesson import Lesson
 
 class SectionBase(BaseModel):
     course_id: int
@@ -13,3 +14,6 @@ class Section(SectionBase):
     id: int
     class Config:
         from_attributes = True 
+
+class SectionWithLessons(Section):
+    lessons: List[Lesson] = [] 
