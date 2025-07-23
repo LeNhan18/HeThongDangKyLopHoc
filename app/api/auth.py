@@ -8,7 +8,7 @@ from app.core.security import get_password_hash
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/login")
-def login(email: str, password: str, db: Session = Depends(get_db)):
+def login(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(UserModel).filter(UserModel.email == email).first()
     if not user or user.hashed_password != get_password_hash(password):
         raise HTTPException(status_code=401, detail="Sai email hoặc mật khẩu")
