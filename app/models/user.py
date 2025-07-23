@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy.orm import relationship
 from app.database import Base
+from app.models.user_role import UserRole
 
 class User(Base):
     __tablename__ = "users"
@@ -8,4 +10,4 @@ class User(Base):
     name = Column(String(255), nullable=True)
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
-    role = Column(String(50), default="student") 
+    roles = relationship("Role", secondary="user_roles", back_populates="users") 

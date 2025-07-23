@@ -31,12 +31,12 @@ export default function CourseCard({ course, user, onEdit, onDelete, onRegister 
         <button className="enroll-btn" onClick={handleDetail}>
           Xem chi tiết
         </button>
-        {user && user.role === "student" && (
+        {user && user.roles && user.roles.some(r => r.toLowerCase() === "student") && (
           <button className="enroll-btn" style={{background:'#4f8cff',marginLeft:8}} onClick={handleRegister}>
             Đăng ký khóa học
           </button>
         )}
-        {user && (user.role === "teacher" || user.role === "admin") && (
+        {user && user.roles && (user.roles.some(r => r.toLowerCase() === "teacher") || user.roles.some(r => r.toLowerCase() === "admin")) && (
           <>
             <button className="enroll-btn" style={{background:'#888',marginLeft:8}} onClick={() => onEdit && onEdit(course)}>
               Sửa

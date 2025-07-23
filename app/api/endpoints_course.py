@@ -11,8 +11,8 @@ router = APIRouter()
 
 @router.post("/courses/", response_model=Course)
 def create_new_course(course: CourseCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    if user.role not in ["teacher", "admin"]:
-     raise HTTPException(status_code=403, detail="Chỉ giảng viên hoặc quản trị mới được tạo khóa học.")
+    if not any(r.lower() in ["teacher", "admin"] for r in user.roles):
+        raise HTTPException(status_code=403, detail="Chỉ giảng viên hoặc quản trị mới được tạo khóa học.")
     return course_service.create_course(db, course)
 
 @router.get("/courses/", response_model=list[Course])
@@ -28,7 +28,7 @@ def get_course_detail(course_id: int, db: Session = Depends(get_db)):
 
 @router.put("/courses/{course_id}", response_model=Course)
 def update_course(course_id: int, course: CourseCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    if user.role not in ["teacher", "admin"]:
+    if not any(r.lower() in ["teacher", "admin"] for r in user.roles):
         raise HTTPException(status_code=403, detail="Chỉ giảng viên hoặc quản trị mới được sửa khóa học.")
     db_course = db.query(CourseModel).filter(CourseModel.id == course_id).first()
     if not db_course:
@@ -41,7 +41,7 @@ def update_course(course_id: int, course: CourseCreate, db: Session = Depends(ge
 
 @router.delete("/courses/{course_id}")
 def delete_course(course_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    if user.role not in ["teacher", "admin"]:
+    if not any(r.lower() in ["teacher", "admin"] for r in user.roles):
         raise HTTPException(status_code=403, detail="Chỉ giảng viên hoặc quản trị mới được xóa khóa học.")
     db_course = db.query(CourseModel).filter(CourseModel.id == course_id).first()
     if not db_course:

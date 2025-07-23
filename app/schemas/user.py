@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from typing import List
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -11,6 +12,6 @@ class User(BaseModel):
     email: EmailStr
     name: str | None = None
     is_active: bool
-    role: str
+    roles: List[str] = []
     class Config:
         from_attributes = True 

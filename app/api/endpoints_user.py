@@ -6,6 +6,7 @@ from app.CRUD import create_user, get_user_by_email
 from app.models.user import User as UserModel
 from app.core.security import get_password_hash
 from app.services import user_service
+from app.models.role import Role
 
 router = APIRouter()
 
@@ -28,3 +29,7 @@ def update_user(user_id: int, user: UserCreate, db: Session = Depends(get_db)):
 @router.delete("/users/{user_id}")
 def delete_user(user_id: int, db: Session = Depends(get_db)):
     return user_service.delete_user(db, user_id)
+
+@router.get("/roles/")
+def get_roles(db: Session = Depends(get_db)):
+    return db.query(Role).all()
