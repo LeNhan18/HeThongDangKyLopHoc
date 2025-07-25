@@ -19,6 +19,7 @@ def update_course(db: Session, course_id: int, course: CourseCreate):
         raise HTTPException(status_code=404, detail="Không tìm thấy khóa học")
     db_course.name = course.name  # type: ignore
     db_course.description = course.description  # type: ignore
+    db_course.image = course.image
     db.commit()
     db.refresh(db_course)
     return CourseSchema.model_validate(db_course)
