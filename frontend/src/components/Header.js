@@ -6,7 +6,7 @@ export default function Header({ user, onLogout }) {
   const navigate = useNavigate();
   return (
     <header className="header">
-      <div className="logo">DEVSKILL+</div>
+      <div className="logo">IT skill+</div>
       <nav>
         <a href="#courses">Course</a>
         <a href="#about">About</a>

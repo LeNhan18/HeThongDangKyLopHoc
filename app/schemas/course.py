@@ -11,6 +11,11 @@ class CourseBase(BaseModel):
 class CourseCreate(CourseBase):
     pass
 
+class CourseUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    image: Optional[str] = None
+
 class Course(CourseBase):
     id: int
     classes: List[Class] = []
