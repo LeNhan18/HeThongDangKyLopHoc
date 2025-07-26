@@ -93,15 +93,17 @@ export default function CourseList({ user, onRequireAuth }) {
           <div>Không có khóa học nào.</div>
         ) : (
           filtered.map(course => (
-            <CourseCard
-              key={course.id}
-              course={course}
-              user={user}
-              onRequireAuth={onRequireAuth}
-              onRegister={handleRegister}
-              onEdit={setEditingCourse}
-              onDelete={handleDelete}
-            />
+            course && (
+              <CourseCard
+                key={course.id}
+                course={course}
+                user={user}
+                onRequireAuth={onRequireAuth}
+                onRegister={handleRegister}
+                onEdit={setEditingCourse}
+                onDelete={handleDelete}
+              />
+            )
           ))
         )}
       </div>

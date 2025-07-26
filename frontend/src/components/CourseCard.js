@@ -6,6 +6,11 @@ import { FaUser } from "react-icons/fa";
 export default function CourseCard({ course, user, onEdit, onDelete, onRegister }) {
   const navigate = useNavigate();
 
+  // Kiểm tra course có tồn tại không
+  if (!course) {
+    return <div>Không có dữ liệu khóa học</div>;
+  }
+
   const handleDetail = () => {
     navigate(`/courses/${course.id}`);
   };
@@ -36,7 +41,7 @@ export default function CourseCard({ course, user, onEdit, onDelete, onRegister 
         {imageUrl ? (
           <img 
             src={imageUrl} 
-            alt={course.name}
+            alt={course.name || 'Khóa học'}
             onError={(e) => {
               e.target.style.display = 'none';
               e.target.nextSibling.style.display = 'flex';
@@ -44,14 +49,14 @@ export default function CourseCard({ course, user, onEdit, onDelete, onRegister 
           />
         ) : null}
         <div className="course-img-placeholder" style={{ display: imageUrl ? 'none' : 'flex' }}>
-          <span>{course.name?.charAt(0)?.toUpperCase() || 'C'}</span>
+          <span>{(course.name || 'C').charAt(0).toUpperCase()}</span>
         </div>
       </div>
       <div className="course-info">
-        <h3>{course.name}</h3>
-        <p>{course.description}</p>
+        <h3>{course.name || 'Khóa học'}</h3>
+        <p>{course.description || 'Chưa có mô tả'}</p>
         <div className="course-meta">
-          <span><FaUser /> Giảng viên: {user.name}</span>
+          <span><FaUser /> Giảng viên: ...</span>
         </div>
         <button className="enroll-btn" onClick={handleDetail}>
           Xem chi tiết
