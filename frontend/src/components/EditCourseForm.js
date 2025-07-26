@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-export default function EditCourseForm({ course, onClose, onSuccess }) {
+export default function EditCourseForm({ course, onClose, onSuccess, isCreate }) {
   const [form, setForm] = useState({
     name: course.name,
     description: course.description || "",
@@ -32,6 +32,7 @@ export default function EditCourseForm({ course, onClose, onSuccess }) {
           headers: { "Content-Type": "multipart/form-data" }
         });
         setForm(f => ({ ...f, image: res.data.url }));
+        setImagePreview(res.data.url); // Cập nhật preview là link ảnh thật sau khi upload
       } catch (err) {
         alert("Lỗi upload ảnh!");
       }
@@ -42,10 +43,21 @@ export default function EditCourseForm({ course, onClose, onSuccess }) {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.put(`http://localhost:8000/courses/${course.id}`, form);
-      setMsg("Cập nhật thành công!");
+      const data = {
+        name: form.name,
+        description: form.description,
+        image: form.image || course.image || ""
+      };
+      console.log("DEBUG - Data being sent:", data);
+      if (isCreate) {
+        await axios.post("http://localhost:8000/courses/", data);
+      } else {
+        await axios.put(`http://localhost:8000/courses/${course.id}`, data);
+      }
+      setMsg(isCreate ? "Tạo mới thành công!" : "Cập nhật thành công!");
       onSuccess && onSuccess();
     } catch (err) {
+      console.error("DEBUG - Error:", err.response?.data || err);
       setMsg("Lỗi khi cập nhật!");
     }
     setLoading(false);
@@ -53,7 +65,7 @@ export default function EditCourseForm({ course, onClose, onSuccess }) {
 
   return (
     <form onSubmit={handleSubmit} style={{ minWidth: 320 }}>
-      <h3>Sửa khóa học</h3>
+      <h3>{isCreate ? "Thêm khóa học" : "Sửa khóa học"}</h3>
       <input
         name="name"
         value={form.name}
@@ -80,7 +92,7 @@ export default function EditCourseForm({ course, onClose, onSuccess }) {
       )}
       <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
         <button type="submit" disabled={loading} style={{ padding: "8px 24px", borderRadius: 6, background: "#ff6f00", color: "#fff", border: "none", fontWeight: 600 }}>
-          Lưu
+          {isCreate ? "Tạo mới" : "Lưu"}
         </button>
         <button type="button" onClick={onClose} style={{ padding: "8px 24px", borderRadius: 6, background: "#888", color: "#fff", border: "none", fontWeight: 600 }}>
           Đóng
