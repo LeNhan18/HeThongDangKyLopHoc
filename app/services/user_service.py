@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.models.user import User as UserModel
 from app.models.role import Role
-from app.schemas.user import User as UserSchema, UserCreate
+from app.schemas.user import User as UserSchema, UserCreate, UserUpdate
 from app.core.security import get_password_hash
 
 def user_to_schema(user: UserModel):
@@ -30,14 +30,41 @@ def create_user(db: Session, user: UserCreate):
     db.refresh(db_user)
     return user_to_schema(db_user)
 
-def update_user(db: Session, user_id: int, user: UserCreate):
+def get_users(db: Session):
+    """Lấy danh sách tất cả user"""
+    users = db.query(UserModel).all()
+    return [user_to_schema(u) for u in users]
+
+def get_user(db: Session, user_id: int):
+    """Lấy user theo ID"""
     db_user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="Không tìm thấy user")
-    db_user.email = str(user.email)  # type: ignore
-    db_user.hashed_password = get_password_hash(user.password)  # type: ignore
-    db_user.name = user.name  # type: ignore
-    # Không cập nhật role trực tiếp ở đây
+    return user_to_schema(db_user)
+
+def update_user(db: Session, user_id: int, user: UserUpdate):
+    """Cập nhật user với UserUpdate schema"""
+    db_user = db.query(UserModel).filter(UserModel.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Không tìm thấy user")
+    
+    # Chỉ cập nhật các trường được cung cấp
+    if user.email is not None:
+        db_user.email = user.email
+    if user.password is not None:
+        db_user.hashed_password = get_password_hash(user.password)
+    if user.name is not None:
+        db_user.name = user.name
+    if user.is_active is not None:
+        db_user.is_active = user.is_active
+    if user.roles is not None:
+        # Cập nhật roles
+        db_user.roles.clear()
+        for role_name in user.roles:
+            db_role = db.query(Role).filter(Role.name == role_name).first()
+            if db_role:
+                db_user.roles.append(db_role)
+    
     db.commit()
     db.refresh(db_user)
     return user_to_schema(db_user)
