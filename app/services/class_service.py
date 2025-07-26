@@ -1,9 +1,14 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException
 from app.models.class_model import Class as ClassModel
 from app.schemas.class_schema import Class as ClassSchema, ClassCreate
 from app.schemas.user import User
 from app.CRUD import get_class_by_id, check_schedule_conflict, create_registration, create_class_history, count_students_in_class, get_class_histories
+
+def get_all_classes(db: Session):
+    """Lấy tất cả lớp học"""
+    classes = db.query(ClassModel).options(joinedload(ClassModel.course)).all()
+    return [ClassSchema.from_orm(cls) for cls in classes]
 
 def create_class(db: Session, class_data: ClassCreate, user: User):
     db_class = ClassModel(**class_data.model_dump())
@@ -32,7 +37,7 @@ def delete_class(db: Session, class_id: int, user: User):
     return {"message": "Đã xóa lớp học thành công"}
 
 def register_class(db: Session, class_id: int, user: User):
-    if user.role != "student":  # type: ignore
+    if not user.roles or "student" not in [r.lower() for r in user.roles]:
         raise HTTPException(status_code=403, detail="Chỉ học viên mới được đăng ký lớp.")
     class_obj = get_class_by_id(db, class_id)
     if not class_obj:
@@ -47,7 +52,7 @@ def register_class(db: Session, class_id: int, user: User):
     return {"message": "Đăng ký thành công", "current_count": count}
 
 def change_class_schedule(db: Session, class_id: int, new_schedule: str, user: User):
-    if user.role not in ["teacher", "admin"]:
+    if not user.roles or not any(r.lower() in ["teacher", "admin"] for r in user.roles):
         raise HTTPException(status_code=403, detail="Chỉ giảng viên hoặc quản trị mới được thay đổi lịch học.")
     class_obj = get_class_by_id(db, class_id)
     if not class_obj:
@@ -63,7 +68,7 @@ def get_class_count(db: Session, class_id: int):
     return {"class_id": class_id, "current_count": count}
 
 def get_class_history(db: Session, class_id: int, user: User):
-    if user.role not in ["teacher", "admin"]:
+    if not user.roles or not any(r.lower() in ["teacher", "admin"] for r in user.roles):
         raise HTTPException(status_code=403, detail="Chỉ giảng viên hoặc quản trị mới được xem lịch sử thay đổi.")
     histories = get_class_histories(db, class_id)
     return histories 

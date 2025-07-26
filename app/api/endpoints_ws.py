@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import CRUD
 from typing import List
+import json
+from datetime import datetime
 
 router = APIRouter()
 
@@ -21,6 +23,53 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+# Quản lý thông báo cho admin/giảng viên
+class AdminNotificationManager:
+    def __init__(self):
+        self.admin_connections: List[WebSocket] = []
+        self.teacher_connections: List[WebSocket] = []
+    
+    async def connect_admin(self, websocket: WebSocket):
+        await websocket.accept()
+        self.admin_connections.append(websocket)
+    
+    async def connect_teacher(self, websocket: WebSocket):
+        await websocket.accept()
+        self.teacher_connections.append(websocket)
+    
+    def disconnect_admin(self, websocket: WebSocket):
+        if websocket in self.admin_connections:
+            self.admin_connections.remove(websocket)
+    
+    def disconnect_teacher(self, websocket: WebSocket):
+        if websocket in self.teacher_connections:
+            self.teacher_connections.remove(websocket)
+    
+    async def notify_admins(self, message: dict):
+        """Gửi thông báo cho tất cả admin"""
+        for connection in self.admin_connections:
+            try:
+                await connection.send_json(message)
+            except:
+                # Xóa connection lỗi
+                self.admin_connections.remove(connection)
+    
+    async def notify_teachers(self, message: dict):
+        """Gửi thông báo cho tất cả giảng viên"""
+        for connection in self.teacher_connections:
+            try:
+                await connection.send_json(message)
+            except:
+                # Xóa connection lỗi
+                self.teacher_connections.remove(connection)
+    
+    async def notify_all_staff(self, message: dict):
+        """Gửi thông báo cho cả admin và teacher"""
+        await self.notify_admins(message)
+        await self.notify_teachers(message)
+
+admin_notification_manager = AdminNotificationManager()
+
 @router.websocket("/ws/class/{class_id}")
 async def websocket_class_count(websocket: WebSocket, class_id: int, db: Session = Depends(get_db)):
     await manager.connect(websocket)
@@ -30,6 +79,7 @@ async def websocket_class_count(websocket: WebSocket, class_id: int, db: Session
             count = CRUD.count_students_in_class(db, class_id)
             await manager.broadcast({"class_id": class_id, "current_count": count})
     except WebSocketDisconnect:
+        
         manager.disconnect(websocket)
 
 # Quản lý kết nối WebSocket thông báo thay đổi lịch học cho từng lớp
@@ -58,4 +108,37 @@ async def websocket_notify_class(websocket: WebSocket, class_id: int):
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
-        notification_manager.disconnect(websocket, class_id) 
+        notification_manager.disconnect(websocket, class_id)
+
+# WebSocket cho admin nhận thông báo
+@router.websocket("/ws/admin/notifications")
+async def websocket_admin_notifications(websocket: WebSocket):
+    await admin_notification_manager.connect_admin(websocket)
+    try:
+        while True:
+            # Giữ kết nối
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        admin_notification_manager.disconnect_admin(websocket)
+
+# WebSocket cho teacher nhận thông báo
+@router.websocket("/ws/teacher/notifications")
+async def websocket_teacher_notifications(websocket: WebSocket):
+    await admin_notification_manager.connect_teacher(websocket)
+    try:
+        while True:
+            # Giữ kết nối
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        admin_notification_manager.disconnect_teacher(websocket)
+
+# Hàm tiện ích để gửi thông báo từ các endpoint khác
+async def send_notification_to_staff(notification_type: str, message: str, data: dict = None):
+    """Gửi thông báo cho admin và teacher"""
+    notification = {
+        "type": notification_type,
+        "message": message,
+        "data": data or {},
+        "timestamp": str(datetime.now())
+    }
+    await admin_notification_manager.notify_all_staff(notification) 

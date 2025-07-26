@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from .course import Course
 
 class ClassBase(BaseModel):
     name: str
@@ -7,10 +8,11 @@ class ClassBase(BaseModel):
     schedule: str
 
 class ClassCreate(ClassBase):
-    pass
+    course_id: Optional[int] = None
 
 class Class(ClassBase):
     id: int
-    course_id: int
+    course_id: Optional[int] = None
+    course: Optional[Course] = None
     class Config:
         from_attributes = True 
