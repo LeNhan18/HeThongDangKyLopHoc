@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import NotificationSystem from "./NotificationSystem";
 import "./Header.css";
 
 export default function Header({ user, onLogout }) {
@@ -20,6 +21,7 @@ export default function Header({ user, onLogout }) {
       {user ? (
         <div className="user-info" style={{color:'#fff',fontWeight:'bold',marginLeft:16,display:'flex',alignItems:'center',gap:12}}>
           {user.email}
+          <NotificationSystem user={user} />
           {isAdmin && (
             <button 
               onClick={() => navigate("/admin/users")} 
