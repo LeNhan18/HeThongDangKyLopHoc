@@ -14,4 +14,4 @@ async def upload_image(file: UploadFile = File(...)):
     file_path = os.path.join(UPLOAD_DIR, filename)
     with open(file_path, "wb") as f:
         f.write(await file.read())
-    return {"url": f"/static/uploads/{filename}"} 
+    return {"url": f"http://localhost:8000/static/uploads/{filename}"} 
