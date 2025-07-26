@@ -14,14 +14,42 @@ function CourseDetailPage() {
       .catch(() => setCourse(null));
   }, [courseId]);
 
+  // Xử lý URL ảnh
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return null;
+    // Nếu URL bắt đầu bằng http, giữ nguyên
+    if (imageUrl.startsWith('http')) {
+      return imageUrl;
+    }
+    // Nếu là relative path, thêm domain backend
+    return `http://localhost:8000${imageUrl}`;
+  };
+
   if (course === null) return <div>Đang tải...</div>;
   if (!course) return <div>Không tìm thấy khóa học</div>;
+
+  const imageUrl = getImageUrl(course.image);
 
   return (
     <div className="course-detail-container">
       <button className="back-btn" onClick={() => navigate(-1)}>← Quay lại</button>
       <div className="course-detail-card">
-        <img src={course.image || "/default-course.jpg"} alt={course.name} className="course-detail-image" />
+        <div className="course-detail-image-container">
+          {imageUrl ? (
+            <img 
+              src={imageUrl} 
+              alt={course.name} 
+              className="course-detail-image"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          <div className="course-detail-image-placeholder" style={{ display: imageUrl ? 'none' : 'flex' }}>
+            <span>{course.name?.charAt(0)?.toUpperCase() || 'C'}</span>
+          </div>
+        </div>
         <div className="course-detail-info">
           <h2>{course.name}</h2>
           <p>{course.description}</p>

@@ -17,16 +17,41 @@ export default function CourseCard({ course, user, onEdit, onDelete, onRegister 
     }
   };
 
+  // Xử lý URL ảnh
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return null;
+    // Nếu URL bắt đầu bằng http, giữ nguyên
+    if (imageUrl.startsWith('http')) {
+      return imageUrl;
+    }
+    // Nếu là relative path, thêm domain backend
+    return `http://localhost:8000${imageUrl}`;
+  };
+
+  const imageUrl = getImageUrl(course.image);
+
   return (
     <div className="course-card">
       <div className="course-img">
-        {course.image && <img src={course.image} alt={course.name} />}
+        {imageUrl ? (
+          <img 
+            src={imageUrl} 
+            alt={course.name}
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'flex';
+            }}
+          />
+        ) : null}
+        <div className="course-img-placeholder" style={{ display: imageUrl ? 'none' : 'flex' }}>
+          <span>{course.name?.charAt(0)?.toUpperCase() || 'C'}</span>
+        </div>
       </div>
       <div className="course-info">
         <h3>{course.name}</h3>
         <p>{course.description}</p>
         <div className="course-meta">
-          <span><FaUser /> Giảng viên: ...</span>
+          <span><FaUser /> Giảng viên: {user.name}</span>
         </div>
         <button className="enroll-btn" onClick={handleDetail}>
           Xem chi tiết
