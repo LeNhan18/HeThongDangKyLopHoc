@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.course import Course, CourseCreate
+from app.schemas.course import Course, CourseCreate, CourseUpdate
 from app.services import course_service
 from app.models.course import Course as CourseModel
 from app.schemas.user import User
@@ -32,21 +32,9 @@ def get_course_detail(course_id: int, db: Session = Depends(get_db)):
     return course
 
 @router.put("/courses/{course_id}", response_model=Course)
-def update_course(course_id: int, course: CourseCreate, db: Session = Depends(get_db), user: User = Depends(require_roles(["admin", "teacher"]))):
-    db_course = db.query(CourseModel).filter(CourseModel.id == course_id).first()
-    if not db_course:
-        raise HTTPException(status_code=404, detail="Không tìm thấy khóa học")
-    db_course.name = course.name
-    db_course.description = course.description
-    db.commit()
-    db.refresh(db_course)
-    return db_course
+def update_course(course_id: int, course: CourseUpdate, db: Session = Depends(get_db), user: User = Depends(require_roles(["admin", "teacher"]))):
+    return course_service.update_course(db, course_id, course)
 
 @router.delete("/courses/{course_id}")
 def delete_course(course_id: int, db: Session = Depends(get_db), user: User = Depends(require_roles(["admin", "teacher"]))):
-    db_course = db.query(CourseModel).filter(CourseModel.id == course_id).first()
-    if not db_course:
-        raise HTTPException(status_code=404, detail="Không tìm thấy khóa học")
-    db.delete(db_course)
-    db.commit()
-    return {"message": "Đã xóa khóa học thành công"}
+    return course_service.delete_course(db, course_id)
