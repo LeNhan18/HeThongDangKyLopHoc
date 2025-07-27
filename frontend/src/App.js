@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Header, Hero, Stats, CourseList, Footer } from "./components";
+import ClassList from "./components/ClassList";
 import AuthPage from "./pages/AuthPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
 import CourseAdminPage from "./pages/CourseAdminPage";
+import AdminPage from "./pages/AdminPage";
 import "./App.css";
 
 function HomePage({ user, onRequireAuth, onLogout }) {
@@ -13,6 +15,7 @@ function HomePage({ user, onRequireAuth, onLogout }) {
       <Hero />
       <Stats />
       <CourseList user={user} onRequireAuth={onRequireAuth} />
+      <ClassList user={user} onRequireAuth={onRequireAuth} />
       <Footer />
     </>
   );
@@ -55,6 +58,7 @@ function App() {
         />
         <Route path="/courses/:courseId" element={<CourseDetailPage />} />
         <Route path="/admin/courses" element={<CourseAdminPage user={user} />} />
+        <Route path="/admin/users" element={<AdminPage user={user} />} />
       </Routes>
     </Router>
   );

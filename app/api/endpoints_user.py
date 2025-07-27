@@ -1,47 +1,39 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.user import User, UserCreate
-from app.CRUD import create_user, get_user_by_email
-from app.models.user import User as UserModel
-from app.core.security import get_password_hash
+from app.schemas.user import User, UserCreate, UserUpdate
 from app.services import user_service
-from app.models.role import Role
+from app.models.user import User as UserModel
+from app.core.auth import get_current_user, require_roles
 
 router = APIRouter()
 
-def get_current_user():
-    # Dummy user for example, replace with real authentication
-    # Ví dụ trả về user có roles, thực tế lấy từ token/session
-    return User(id=1, email="admin@gmail.com", name="Admin", is_active=True, roles=["admin"])
+@router.get("/users/", response_model=list[User])
+def list_users(db: Session = Depends(get_db), current_user: User = Depends(require_roles(["admin"]))):
+    """Lấy danh sách tất cả user (chỉ admin)"""
+    return user_service.get_users(db)
 
-def require_roles(required_roles: list[str]):
-    def checker(user: User = Depends(get_current_user)):
-        if not any(r.lower() in [role.lower() for role in user.roles] for r in required_roles):
-            raise HTTPException(status_code=403, detail="Bạn không có quyền thực hiện thao tác này.")
-        return user
-    return checker
-
-@router.post("/users/register", response_model=User)
-def register_user(user: UserCreate, db: Session = Depends(get_db)):
+@router.post("/users/", response_model=User)
+def create_user(user: UserCreate, db: Session = Depends(get_db), current_user: User = Depends(require_roles(["admin"]))):
+    """Tạo user mới (chỉ admin)"""
     return user_service.create_user(db, user)
 
-@router.get("/users/", response_model=list[User])
-def get_all_users(db: Session = Depends(get_db), user: User = Depends(require_roles(["admin", "teacher"]))):
-    return user_service.get_all_users(db)
-
-@router.get("/users/{email}", response_model=User)
-def get_user(email: str, db: Session = Depends(get_db), user: User = Depends(require_roles(["admin", "teacher"]))):
-    return user_service.get_user_by_email(db, email)
+@router.get("/users/{user_id}", response_model=User)
+def get_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_roles(["admin"]))):
+    """Lấy thông tin user theo ID (chỉ admin)"""
+    return user_service.get_user(db, user_id)
 
 @router.put("/users/{user_id}", response_model=User)
-def update_user(user_id: int, user_update: UserCreate, db: Session = Depends(get_db), user: User = Depends(require_roles(["admin", "teacher"]))):
-    return user_service.update_user(db, user_id, user_update)
+def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db), current_user: User = Depends(require_roles(["admin"]))):
+    """Cập nhật user (chỉ admin)"""
+    return user_service.update_user(db, user_id, user)
 
 @router.delete("/users/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db), user: User = Depends(require_roles(["admin", "teacher"]))):
+def delete_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_roles(["admin"]))):
+    """Xóa user (chỉ admin)"""
     return user_service.delete_user(db, user_id)
 
-@router.get("/roles/")
-def get_roles(db: Session = Depends(get_db)):
-    return db.query(Role).all()
+# Endpoint hiện tại cho dashboard
+@router.get("/dashboard/summary")
+def get_dashboard_summary(db: Session = Depends(get_db)):
+    return {"message": "Dashboard summary"}
