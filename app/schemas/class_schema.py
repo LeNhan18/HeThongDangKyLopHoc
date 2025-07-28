@@ -17,4 +17,7 @@ class Class(ClassBase):
     course_id: Optional[int] = None
     course: Optional['Course'] = None
     class Config:
-        from_attributes = True 
+        from_attributes = True
+
+# Rebuild model để resolve forward references
+Class.model_rebuild() 

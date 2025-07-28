@@ -8,14 +8,14 @@ from app.CRUD import get_class_by_id, check_schedule_conflict, create_registrati
 def get_all_classes(db: Session):
     """Lấy tất cả lớp học"""
     classes = db.query(ClassModel).options(joinedload(ClassModel.course)).all()
-    return [ClassSchema.from_orm(cls) for cls in classes]
+    return [ClassSchema.model_validate(cls) for cls in classes]
 
 def create_class(db: Session, class_data: ClassCreate, user: User):
     db_class = ClassModel(**class_data.model_dump())
     db.add(db_class)
     db.commit()
     db.refresh(db_class)
-    return ClassSchema.from_orm(db_class)
+    return ClassSchema.model_validate(db_class)
 
 def update_class(db: Session, class_id: int, class_data: ClassCreate, user: User):
     db_class = db.query(ClassModel).filter(ClassModel.id == class_id).first()
@@ -26,7 +26,7 @@ def update_class(db: Session, class_id: int, class_data: ClassCreate, user: User
     db_class.schedule = class_data.schedule  # type: ignore
     db.commit()
     db.refresh(db_class)
-    return ClassSchema.from_orm(db_class)
+    return ClassSchema.model_validate(db_class)
 
 def delete_class(db: Session, class_id: int, user: User):
     db_class = db.query(ClassModel).filter(ClassModel.id == class_id).first()

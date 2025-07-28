@@ -23,4 +23,7 @@ class Course(CourseBase):
     classes: List['Class'] = []
     sections: List['SectionWithLessons'] = []
     class Config:
-        from_attributes = True 
+        from_attributes = True
+
+# Rebuild model để resolve forward references
+Course.model_rebuild() 
