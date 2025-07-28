@@ -1,9 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from .class_schema import Class
-    from .section import SectionWithLessons
+from typing import Optional, List, Any
 
 class CourseBase(BaseModel):
     name: str
@@ -20,10 +16,7 @@ class CourseUpdate(BaseModel):
 
 class Course(CourseBase):
     id: int
-    classes: List['Class'] = []
-    sections: List['SectionWithLessons'] = []
+    classes: List[Any] = []
+    sections: List[Any] = []
     class Config:
-        from_attributes = True
-
-# Rebuild model để resolve forward references
-Course.model_rebuild() 
+        from_attributes = True 

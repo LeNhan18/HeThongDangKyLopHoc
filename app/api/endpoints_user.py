@@ -4,9 +4,31 @@ from app.database import get_db
 from app.schemas.user import User, UserCreate, UserUpdate
 from app.services import user_service
 from app.models.user import User as UserModel
+from app.models.role import Role as RoleModel
 from app.core.auth import get_current_user, require_roles
 
 router = APIRouter()
+
+@router.get("/roles/")
+def get_roles(db: Session = Depends(get_db)):
+    """Lấy danh sách tất cả roles"""
+    # Kiểm tra nếu chưa có roles thì tạo mẫu
+    roles_count = db.query(RoleModel).count()
+    if roles_count == 0:
+        # Tạo roles mẫu
+        sample_roles = ["admin", "teacher", "student"]
+        for role_name in sample_roles:
+            role = RoleModel(name=role_name)
+            db.add(role)
+        db.commit()
+    
+    roles = db.query(RoleModel).all()
+    return [{"id": role.id, "name": role.name} for role in roles]
+
+@router.post("/users/register", response_model=User)
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    """Đăng ký user mới"""
+    return user_service.create_user(db, user)
 
 @router.get("/users/", response_model=list[User])
 def list_users(db: Session = Depends(get_db), current_user: User = Depends(require_roles(["admin"]))):
