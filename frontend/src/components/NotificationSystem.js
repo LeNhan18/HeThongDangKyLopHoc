@@ -19,6 +19,9 @@ export default function NotificationSystem({ user }) {
       return; // Student không cần kết nối
     }
 
+    console.log('Connecting to WebSocket:', wsUrl);
+    console.log('User roles:', user.roles);
+
     const websocket = new WebSocket(wsUrl);
 
     websocket.onopen = () => {

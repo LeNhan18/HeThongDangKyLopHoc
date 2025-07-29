@@ -47,10 +47,13 @@ class AdminNotificationManager:
     
     async def notify_admins(self, message: dict):
         """Gửi thông báo cho tất cả admin"""
+        print(f"Notifying {len(self.admin_connections)} admins")
         for connection in self.admin_connections:
             try:
                 await connection.send_json(message)
-            except:
+                print("Notification sent to admin successfully")
+            except Exception as e:
+                print(f"Error sending to admin: {e}")
                 # Xóa connection lỗi
                 self.admin_connections.remove(connection)
     
@@ -65,6 +68,7 @@ class AdminNotificationManager:
     
     async def notify_all_staff(self, message: dict):
         """Gửi thông báo cho cả admin và teacher"""
+        print(f"Notifying all staff. Message: {message}")
         await self.notify_admins(message)
         await self.notify_teachers(message)
 
@@ -113,12 +117,15 @@ async def websocket_notify_class(websocket: WebSocket, class_id: int):
 # WebSocket cho admin nhận thông báo
 @router.websocket("/ws/admin/notifications")
 async def websocket_admin_notifications(websocket: WebSocket):
+    print("Admin WebSocket connection attempt")
     await admin_notification_manager.connect_admin(websocket)
+    print(f"Admin connected. Total admin connections: {len(admin_notification_manager.admin_connections)}")
     try:
         while True:
             # Giữ kết nối
             await websocket.receive_text()
     except WebSocketDisconnect:
+        print("Admin WebSocket disconnected")
         admin_notification_manager.disconnect_admin(websocket)
 
 # WebSocket cho teacher nhận thông báo
@@ -135,10 +142,20 @@ async def websocket_teacher_notifications(websocket: WebSocket):
 # Hàm tiện ích để gửi thông báo từ các endpoint khác
 async def send_notification_to_staff(notification_type: str, message: str, data: dict = None):
     """Gửi thông báo cho admin và teacher"""
+    print(f"Sending notification: {notification_type} - {message}")
     notification = {
         "type": notification_type,
         "message": message,
         "data": data or {},
         "timestamp": str(datetime.now())
     }
-    await admin_notification_manager.notify_all_staff(notification) 
+    print(f"Admin connections: {len(admin_notification_manager.admin_connections)}")
+    print(f"Teacher connections: {len(admin_notification_manager.teacher_connections)}")
+    await admin_notification_manager.notify_all_staff(notification)
+
+# Endpoint test để gửi thông báo
+@router.post("/test-notification")
+async def test_notification():
+    """Test endpoint để gửi thông báo"""
+    await send_notification_to_staff("test","Đây là thông báo test từ backend",{"test": True})
+    return {"message": "Test notification sent"} 
