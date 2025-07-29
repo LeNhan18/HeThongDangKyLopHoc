@@ -70,32 +70,27 @@ def create_sample_classes(db: Session = Depends(get_db)):
         {
             "name": "Lớp Python Cơ bản",
             "max_students": 25,
-            "schedule": "Thứ 2, 4, 6 - 19:00-21:00",
-            "course_id": 1
+            "schedule": "Thứ 2, 4, 6 - 19:00-21:00"
         },
         {
             "name": "Lớp Python Nâng cao",
             "max_students": 20,
-            "schedule": "Thứ 3, 5, 7 - 19:00-21:00",
-            "course_id": 1
+            "schedule": "Thứ 3, 5, 7 - 19:00-21:00"
         },
         {
             "name": "Lớp React Cơ bản",
             "max_students": 30,
-            "schedule": "Thứ 2, 4, 6 - 18:00-20:00",
-            "course_id": 2
+            "schedule": "Thứ 2, 4, 6 - 18:00-20:00"
         },
         {
             "name": "Lớp React Nâng cao",
             "max_students": 25,
-            "schedule": "Thứ 3, 5, 7 - 18:00-20:00",
-            "course_id": 2
+            "schedule": "Thứ 3, 5, 7 - 18:00-20:00"
         },
         {
             "name": "Lớp Database Design",
             "max_students": 20,
-            "schedule": "Thứ 6, 7 - 14:00-17:00",
-            "course_id": 3
+            "schedule": "Thứ 6, 7 - 14:00-17:00"
         }
     ]
     
