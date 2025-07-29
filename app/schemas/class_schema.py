@@ -1,8 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from .course import Course
+from typing import Optional, Any
 
 class ClassBase(BaseModel):
     name: str
@@ -15,6 +12,6 @@ class ClassCreate(ClassBase):
 class Class(ClassBase):
     id: int
     course_id: Optional[int] = None
-    course: Optional['Course'] = None
+    course: Optional[Any] = None
     class Config:
         from_attributes = True 

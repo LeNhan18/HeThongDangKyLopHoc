@@ -3,8 +3,8 @@ from fastapi import Depends, HTTPException
 
 def get_current_user():
     # Dummy user, thay bằng lấy từ token/session thực tế
-    # Tạm thời cho tất cả user có quyền admin để test
-    return User(id=1, email="test@example.com", name="Test User", is_active=True, roles=["admin"])
+    # Tạm thời cho user có quyền student để test đăng ký lớp
+    return User(id=1, email="test@example.com", name="Test User", is_active=True, roles=["student"])
 
 def require_roles(required_roles: list[str]):
     def checker(user: User = Depends(get_current_user)):
