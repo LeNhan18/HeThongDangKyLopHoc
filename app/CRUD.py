@@ -49,10 +49,14 @@ def create_class_for_course(db: Session, class_data: ClassCreate, course_id: int
     return db_class
 
 # --- THÊM CÁC HÀM MỚI VÀO ĐÂY ---
-def check_schedule_conflict(db: Session, student_id: int, new_schedule: str) -> bool:
+def check_schedule_conflict(db: Session, student_id: int, new_schedule: str, exclude_class_id: int = None) -> bool:
     # Lấy tất cả các lớp mà học viên đã đăng ký
     regs = db.query(Registration).filter(Registration.student_id == student_id).all()
     for reg in regs:
+        # Bỏ qua lớp hiện tại nếu đang cập nhật
+        if exclude_class_id and reg.class_id == exclude_class_id:
+            continue
+            
         class_obj = db.query(Class).filter(Class.id == reg.class_id).first()
         if class_obj and class_obj.schedule == new_schedule:
             return True  # Trùng lịch
