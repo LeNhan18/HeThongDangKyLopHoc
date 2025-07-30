@@ -1,0 +1,24 @@
+### Test API Xem Thành Viên Lớp Học
+
+### 1. Lấy danh sách học viên trong lớp học
+GET http://localhost:8000/class/1/students
+
+### 2. Lấy số lượng học viên trong lớp học
+GET http://localhost:8000/class/1/students/count
+
+### 3. Lấy số lượng học viên trong lớp học (API cũ)
+GET http://localhost:8000/class/1/count
+
+### 4. Kiểm tra đăng ký hiện tại
+GET http://localhost:8000/registrations/check
+
+### 5. Đăng ký học viên vào lớp học (để test)
+POST http://localhost:8000/register_class/1
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN
+
+### 6. Lấy danh sách tất cả lớp học
+GET http://localhost:8000/classes/
+
+### 7. Lấy danh sách tất cả khóa học
+GET http://localhost:8000/courses/ 
