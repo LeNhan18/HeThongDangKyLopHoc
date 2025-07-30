@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Form
+from fastapi import APIRouter, Depends, HTTPException, Form, Request
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.user import User as UserModel
@@ -8,11 +8,28 @@ from app.core.security import get_password_hash, verify_password
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/login")
-def login(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+def login(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db), request: Request = None):
+    """Login function với debug"""
+    print(f"🔍 DEBUG: Login attempt - Email: {email}")
+
     user = db.query(UserModel).filter(UserModel.email == email).first()
-    if not user or not verify_password(password, user.hashed_password):
+    if not user:
+        print(f"❌ DEBUG: User not found: {email}")
         raise HTTPException(status_code=401, detail="Sai email hoặc mật khẩu")
-    
+
+    print(f"✅ DEBUG: Found user: ID={user.id}, Email={user.email}")
+
+    if not verify_password(password, user.hashed_password):
+        print(f"❌ DEBUG: Password verification failed for: {email}")
+        raise HTTPException(status_code=401, detail="Sai email hoặc mật khẩu")
+
+    print(f"✅ DEBUG: Password verified for user: {email}")
+
+    # Lưu user id vào session để các request sau nhận đúng user
+    if request and hasattr(request, 'session'):
+        request.session["current_user_id"] = user.id
+        print(f"Session set current_user_id = {user.id}")
+
     return {
         "id": user.id,
         "email": user.email,
