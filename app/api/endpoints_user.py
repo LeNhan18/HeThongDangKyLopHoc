@@ -5,10 +5,16 @@ from app.schemas.user import User, UserCreate, UserUpdate
 from app.services import user_service
 from app.models.user import User as UserModel
 from app.models.role import Role as RoleModel
-from app.core.auth import get_current_user, require_roles
+from app.core.auth import get_current_user_debug
+from app.core.permissions import require_roles
 from app.api.endpoints_ws import send_notification_to_staff
 
 router = APIRouter()
+
+@router.get("/test-users/")
+def test_list_users(db: Session = Depends(get_db)):
+    """Endpoint test để lấy danh sách users không yêu cầu authentication"""
+    return user_service.get_users(db)
 
 @router.get("/roles/")
 def get_roles(db: Session = Depends(get_db)):
