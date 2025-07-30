@@ -1,7 +1,11 @@
 from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException
+
+from app.models.attendance import Attendance
 from app.models.class_model import Class as ClassModel
 from app.models.course import Course as CourseModel
+from app.models.feedback import Feedback
+from app.models.history import ClassHistory
 from app.schemas.class_schema import Class as ClassSchema, ClassCreate
 from app.schemas.user import User
 from app.CRUD import get_class_by_id, check_schedule_conflict, create_registration, create_class_history, count_students_in_class, get_class_histories
@@ -67,12 +71,43 @@ def update_class(db: Session, class_id: int, class_data: ClassCreate, user: User
     return ClassSchema.model_validate(db_class)
 
 def delete_class(db: Session, class_id: int, user: User):
+    """
+    Xóa một lớp học và tất cả các bản ghi liên quan một cách an toàn.
+    """
+    # 1. Tìm lớp học cần xóa
     db_class = db.query(ClassModel).filter(ClassModel.id == class_id).first()
     if not db_class:
         raise HTTPException(status_code=404, detail="Không tìm thấy lớp học")
+
+    # (Tùy chọn) Kiểm tra quyền của người dùng, ví dụ chỉ admin được xóa
+    # if 'admin' not in [role.name for role in user.roles]:
+    #     raise HTTPException(status_code=403, detail="Không có quyền thực hiện hành động này")
+
+    # 2. Xóa tất cả các bản ghi phụ thuộc TRƯỚC KHI xóa lớp học
+    # Dựa trên ERD của bạn, chúng ta cần xóa từ các bảng:
+    # class_histories, registrations, attendances, feedbacks.
+    # `synchronize_session=False` được khuyến nghị cho các thao tác xóa hàng loạt để có hiệu suất tốt hơn.
+
+    # Xóa lịch sử lớp học (nguyên nhân gây ra lỗi của bạn)
+    db.query(ClassHistory).filter(ClassHistory.class_id == class_id).delete(synchronize_session=False)
+
+    # Xóa các lượt đăng ký
+    db.query(Registration).filter(Registration.class_id == class_id).delete(synchronize_session=False)
+
+    # Xóa các lượt điểm danh
+    db.query(Attendance).filter(Attendance.class_id == class_id).delete(synchronize_session=False)
+
+    # Xóa các phản hồi
+    db.query(Feedback).filter(Feedback.class_id == class_id).delete(synchronize_session=False)
+
+    # 3. Cuối cùng, xóa chính lớp học đó
     db.delete(db_class)
+
+    # 4. Lưu tất cả các thay đổi vào CSDL
     db.commit()
-    return {"message": "Đã xóa lớp học thành công"}
+
+    return {"message": f"Đã xóa thành công lớp học ID {class_id} và các dữ liệu liên quan."}
+
 
 
 def register_class(db: Session, class_id: int, user: User):
