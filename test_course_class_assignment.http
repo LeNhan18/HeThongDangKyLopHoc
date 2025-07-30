@@ -1,0 +1,42 @@
+### Test API Gán Khóa Học Vào Lớp Học
+
+### 1. Lấy tất cả khóa học
+GET http://localhost:8000/courses/
+
+### 2. Lấy tất cả lớp học
+GET http://localhost:8000/classes/
+
+### 3. Gán khóa học vào lớp học (cần đăng nhập với quyền teacher/admin)
+POST http://localhost:8000/class/1/assign_course/1
+Content-Type: application/json
+
+### 4. Xem thông tin khóa học của lớp học
+GET http://localhost:8000/class/1/course
+
+### 5. Lấy tất cả lớp học của một khóa học
+GET http://localhost:8000/course/1/classes
+
+### 6. Xóa khóa học khỏi lớp học (cần đăng nhập với quyền teacher/admin)
+DELETE http://localhost:8000/class/1/remove_course
+
+### 7. Tạo lớp học mới với khóa học
+POST http://localhost:8000/class/
+Content-Type: application/json
+
+{
+    "name": "Lớp Python Cơ bản - Khóa 1",
+    "max_students": 25,
+    "schedule": "Thứ 2, 4, 6 - 19:00-21:00",
+    "course_id": 1
+}
+
+### 8. Cập nhật lớp học với khóa học mới
+PUT http://localhost:8000/class/1
+Content-Type: application/json
+
+{
+    "name": "Lớp Python Cơ bản - Khóa 1",
+    "max_students": 30,
+    "schedule": "Thứ 2, 4, 6 - 19:00-21:00",
+    "course_id": 2
+} 

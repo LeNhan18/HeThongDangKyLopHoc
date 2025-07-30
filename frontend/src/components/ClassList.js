@@ -17,13 +17,13 @@ export default function ClassList({ user, onRequireAuth }) {
   const fetchClasses = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:8000/classes/');
+      const response = await axios.get('http://localhost:8000/classes/', { withCredentials: true });
       
       // Lấy số lượng học viên cho từng lớp
       const classesWithCount = await Promise.all(
         response.data.map(async (classItem) => {
           try {
-            const countResponse = await axios.get(`http://localhost:8000/class/${classItem.id}/count`);
+            const countResponse = await axios.get(`http://localhost:8000/class/${classItem.id}/count`, { withCredentials: true });
             return {
               ...classItem,
               current_count: countResponse.data.current_count
@@ -53,7 +53,7 @@ export default function ClassList({ user, onRequireAuth }) {
     }
 
     try {
-      await axios.post(`http://localhost:8000/register_class/${classId}`);
+      await axios.post(`http://localhost:8000/register_class/${classId}`, {}, { withCredentials: true });
       alert('Đăng ký thành công!');
       fetchClasses(); // Refresh danh sách
     } catch (error) {
@@ -68,7 +68,7 @@ export default function ClassList({ user, onRequireAuth }) {
 
   const handleDelete = async (classId) => {
     try {
-      await axios.delete(`http://localhost:8000/class/${classId}`);
+      await axios.delete(`http://localhost:8000/class/${classId}`, { withCredentials: true });
       alert('Xóa lớp học thành công!');
       fetchClasses(); // Refresh danh sách
     } catch (error) {
