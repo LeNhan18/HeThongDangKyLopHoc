@@ -6,8 +6,10 @@ import "./Header.css";
 export default function Header({ user, onLogout }) {
   const navigate = useNavigate();
   
-  // Kiểm tra user có role admin không
+  // Kiểm tra user có role admin hoặc teacher không
   const isAdmin = user && user.roles && user.roles.some(r => r.toLowerCase() === "admin");
+  const isTeacher = user && user.roles && user.roles.some(r => r.toLowerCase() === "teacher");
+  const canManageCourses = isAdmin || isTeacher;
   
   return (
     <header className="header">
@@ -22,6 +24,23 @@ export default function Header({ user, onLogout }) {
         <div className="user-info" style={{color:'#fff',fontWeight:'bold',marginLeft:16,display:'flex',alignItems:'center',gap:12}}>
           {user.email}
           <NotificationSystem user={user} />
+          {canManageCourses && (
+            <button 
+              onClick={() => navigate("/admin/course-management")} 
+              style={{
+                marginLeft:8,
+                padding:'4px 12px',
+                borderRadius:6,
+                border:'none',
+                background:'#4CAF50',
+                color:'#fff',
+                fontWeight:600,
+                cursor:'pointer'
+              }}
+            >
+              Quản Lý KH
+            </button>
+          )}
           {isAdmin && (
             <button 
               onClick={() => navigate("/admin/users")} 
