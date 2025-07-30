@@ -28,6 +28,7 @@ export default function ClassCard({ classItem, user, onRegister, onEdit, onDelet
   };
 
   const handleDelete = () => {
+    // eslint-disable-next-line no-restricted-globals
     if (confirm(`Bạn có chắc muốn xóa lớp "${classItem.name}"?`)) {
       if (onDelete) {
         onDelete(classItem.id);
