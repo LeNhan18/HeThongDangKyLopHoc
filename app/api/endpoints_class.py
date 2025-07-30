@@ -14,10 +14,20 @@ from app.core.auth import get_current_user_debug
 router = APIRouter()
 
 
-@router.get("/classes/", response_model=list[ClassSchema])
+@router.get("/classes/")  # Bỏ response_model=list[ClassSchema]
 def get_all_classes(db: Session = Depends(get_db)):
-    """Lấy tất cả lớp học"""
-    return class_service.get_all_classes(db)
+    classes = class_service.get_all_classes(db)
+    return [
+        {
+            "id": cls.id,
+            "name": cls.name,
+            "max_students": cls.max_students,
+            "schedule": cls.schedule,
+            "course_id": cls.course_id,
+            "course": None
+        }
+        for cls in classes
+    ]
 
 @router.post("/register_class/{class_id}")
 async def register_class_endpoint(

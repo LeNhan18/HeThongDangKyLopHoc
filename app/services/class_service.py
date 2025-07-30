@@ -8,10 +8,8 @@ from app.CRUD import get_class_by_id, check_schedule_conflict, create_registrati
 from app.models.registration import Registration
 
 def get_all_classes(db: Session):
-    """Lấy tất cả lớp học"""
-    classes = db.query(ClassModel).options(joinedload(ClassModel.course)).all()
-    return [ClassSchema.model_validate(cls) for cls in classes]
-
+    db_classes = db.query(ClassModel).all()
+    return [ClassSchema.model_validate(cls) for cls in db_classes]
 def create_class(db: Session, class_data: ClassCreate, user: User):
     db_class = ClassModel(**class_data.model_dump())
     db.add(db_class)
