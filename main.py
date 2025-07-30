@@ -6,6 +6,18 @@ from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
+from starlette.middleware.sessions import SessionMiddleware
+app.add_middleware(SessionMiddleware, secret_key="your_secret_key")
+
+# Thêm CORS middleware trước tiên
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(endpoints_user.router)
 app.include_router(endpoints_course.router)
 app.include_router(endpoints_dashboard.router)
@@ -19,11 +31,3 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Thêm prefix và tags cho auth router
 app.include_router(auth.router, tags=["Authentication"])
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
