@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import "./CourseCard.css";
+import "./css/CourseCard.css";
 import { FaUser } from "react-icons/fa";
 
 export default function CourseCard({ course, user, onEdit, onDelete, onRegister }) {

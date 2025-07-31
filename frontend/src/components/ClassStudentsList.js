@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './ClassStudentsList.css';
+import './css/ClassStudentsList.css';
 
 const ClassStudentsList = ({ classId, onClose }) => {
   const [studentsData, setStudentsData] = useState(null);

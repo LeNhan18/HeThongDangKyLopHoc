@@ -14,8 +14,28 @@ from app.models.registration import Registration
 def get_all_classes(db: Session):
     db_classes = db.query(ClassModel).all()
     return [ClassSchema.model_validate(cls) for cls in db_classes]
+def is_time_overlap(start1, end1, start2, end2):
+    return start1 < end2 and end1 > start2
+
+def has_schedule_conflict(new_schedule, other_schedule):
+    for slot in new_schedule:
+        for other in other_schedule:
+            if slot['day'] == other['day']:
+                if is_time_overlap(slot['start'], slot['end'], other['start'], other['end']):
+                    return True
+    return False
+
 def create_class(db: Session, class_data: ClassCreate, user: User):
-    db_class = ClassModel(**class_data.model_dump())
+    # Đảm bảo schedule là list
+    data = class_data.model_dump()
+    if not isinstance(data['schedule'], list):
+        raise HTTPException(status_code=400, detail="Lịch học phải là danh sách các khung thời gian!")
+    # Kiểm tra trùng lịch với các lớp khác
+    all_classes = db.query(ClassModel).all()
+    for cls in all_classes:
+        if has_schedule_conflict(data['schedule'], cls.schedule):
+            raise HTTPException(status_code=400, detail=f"Lịch học bị trùng với lớp: {cls.name}")
+    db_class = ClassModel(**data)
     db.add(db_class)
     db.commit()
     db.refresh(db_class)
@@ -37,6 +57,13 @@ def update_class(db: Session, class_id: int, class_data: ClassCreate, user: User
     if class_data.max_students is not None:
         db_class.max_students = class_data.max_students
     if class_data.schedule is not None:
+        if not isinstance(class_data.schedule, list):
+            raise HTTPException(status_code=400, detail="Lịch học phải là danh sách các khung thời gian!")
+        # Kiểm tra trùng lịch với các lớp khác (bỏ qua chính lớp này)
+        all_classes = db.query(ClassModel).filter(ClassModel.id != class_id).all()
+        for cls in all_classes:
+            if has_schedule_conflict(class_data.schedule, cls.schedule):
+                raise HTTPException(status_code=400, detail=f"Lịch học bị trùng với lớp: {cls.name}")
         db_class.schedule = class_data.schedule
     if class_data.course_id is not None:
         # Kiểm tra khóa học tồn tại nếu được cung cấp

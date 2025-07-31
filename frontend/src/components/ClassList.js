@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import ClassCard from './ClassCard';
-import './ClassList.css';
+import './css/ClassList.css';
 
 export default function ClassList({ user, onRequireAuth }) {
   const [classes, setClasses] = useState([]);
@@ -10,16 +10,13 @@ export default function ClassList({ user, onRequireAuth }) {
   const [editingClass, setEditingClass] = useState(null);
   const [adding, setAdding] = useState(false);
 
-  useEffect(() => {
-    fetchClasses();
-  }, []);
-
-  const fetchClasses = async () => {
+  // Sử dụng useCallback để đảm bảo hàm fetchClasses không bị tạo lại mỗi lần render
+  const fetchClasses = useCallback(async () => {
     try {
       setLoading(true);
+      // SỬA LẠI: Sử dụng withCredentials cho xác thực bằng Cookie
       const response = await axios.get('http://localhost:8000/classes/', { withCredentials: true });
-      
-      // Lấy số lượng học viên cho từng lớp
+
       const classesWithCount = await Promise.all(
         response.data.map(async (classItem) => {
           try {
@@ -37,14 +34,19 @@ export default function ClassList({ user, onRequireAuth }) {
           }
         })
       );
-      
+
       setClasses(classesWithCount);
     } catch (error) {
       console.error('Error fetching classes:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // Bỏ user.token khỏi dependency array
+
+  useEffect(() => {
+    fetchClasses();
+  }, [fetchClasses]);
+
 
   const handleRegister = async (classId) => {
     if (!user) {
@@ -53,24 +55,22 @@ export default function ClassList({ user, onRequireAuth }) {
     }
 
     try {
+      // SỬA LẠI: Sử dụng withCredentials thay vì gửi token
       await axios.post(`http://localhost:8000/register_class/${classId}`, {}, { withCredentials: true });
       alert('Đăng ký thành công!');
-      fetchClasses(); // Refresh danh sách
+      fetchClasses(); // Tải lại danh sách để cập nhật
     } catch (error) {
       console.error('Error registering for class:', error);
       alert(error.response?.data?.detail || 'Có lỗi xảy ra khi đăng ký');
     }
   };
 
-  const handleEdit = (classItem) => {
-    setEditingClass(classItem);
-  };
-
   const handleDelete = async (classId) => {
     try {
+      // SỬA LẠI: Sử dụng withCredentials
       await axios.delete(`http://localhost:8000/class/${classId}`, { withCredentials: true });
       alert('Xóa lớp học thành công!');
-      fetchClasses(); // Refresh danh sách
+      fetchClasses();
     } catch (error) {
       console.error('Error deleting class:', error);
       alert(error.response?.data?.detail || 'Có lỗi xảy ra khi xóa');
@@ -79,11 +79,13 @@ export default function ClassList({ user, onRequireAuth }) {
 
   const handleAddClass = async (formData) => {
     try {
-      await axios.post('http://localhost:8000/class/', formData);
+      // SỬA LẠI: Sử dụng withCredentials
+      await axios.post('http://localhost:8000/class/', formData, { withCredentials: true });
       alert('Tạo lớp học thành công!');
       setAdding(false);
-      fetchClasses(); // Refresh danh sách
-    } catch (error) {
+      fetchClasses();
+    } catch (error)
+    {
       console.error('Error creating class:', error);
       alert(error.response?.data?.detail || 'Có lỗi xảy ra khi tạo lớp học');
     }
@@ -91,12 +93,12 @@ export default function ClassList({ user, onRequireAuth }) {
 
   const filteredClasses = classes.filter(classItem =>
     classItem.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    classItem.schedule?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (typeof classItem.schedule === 'string' && classItem.schedule.toLowerCase().includes(searchTerm.toLowerCase())) ||
     classItem.course?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const canManage = user && user.roles && (
-    user.roles.some(r => r.toLowerCase() === 'admin') || 
+    user.roles.some(r => r.toLowerCase() === 'admin') ||
     user.roles.some(r => r.toLowerCase() === 'teacher')
   );
 
@@ -136,19 +138,19 @@ export default function ClassList({ user, onRequireAuth }) {
               classItem={classItem}
               user={user}
               onRegister={handleRegister}
-              onEdit={handleEdit}
+              onEdit={setEditingClass}
               onDelete={handleDelete}
             />
           ))
         )}
       </div>
 
-      {/* Edit Class Modal */}
       {editingClass && (
         <div className="modal-overlay">
           <div className="modal-content">
             <EditClassForm
               classItem={editingClass}
+              user={user}
               onClose={() => setEditingClass(null)}
               onSuccess={() => {
                 setEditingClass(null);
@@ -159,12 +161,12 @@ export default function ClassList({ user, onRequireAuth }) {
         </div>
       )}
 
-      {/* Add Class Modal */}
       {adding && (
         <div className="modal-overlay">
           <div className="modal-content">
             <EditClassForm
               classItem={{ name: "", max_students: 30, schedule: "", course_id: null }}
+              user={user}
               onClose={() => setAdding(false)}
               onSuccess={handleAddClass}
               isCreate={true}
@@ -176,8 +178,7 @@ export default function ClassList({ user, onRequireAuth }) {
   );
 }
 
-// Component form để thêm/sửa lớp học
-function EditClassForm({ classItem, onClose, onSuccess, isCreate = false }) {
+function EditClassForm({ classItem, onClose, onSuccess, isCreate = false, user }) {
   const [form, setForm] = useState({
     name: classItem.name || '',
     max_students: classItem.max_students || 30,
@@ -201,9 +202,11 @@ function EditClassForm({ classItem, onClose, onSuccess, isCreate = false }) {
       };
 
       if (isCreate) {
-        await axios.post('http://localhost:8000/class/', data);
+        // SỬA LẠI: Sử dụng withCredentials
+        await axios.post('http://localhost:8000/class/', data, { withCredentials: true });
       } else {
-        await axios.put(`http://localhost:8000/class/${classItem.id}`, data);
+        // SỬA LẠI: Sử dụng withCredentials
+        await axios.put(`http://localhost:8000/class/${classItem.id}`, data, { withCredentials: true });
       }
 
       setMsg(isCreate ? 'Tạo mới thành công!' : 'Cập nhật thành công!');
@@ -219,7 +222,7 @@ function EditClassForm({ classItem, onClose, onSuccess, isCreate = false }) {
   return (
     <form onSubmit={handleSubmit} style={{ minWidth: 320 }}>
       <h3>{isCreate ? 'Thêm lớp học' : 'Sửa lớp học'}</h3>
-      
+
       <div style={{ marginBottom: 16 }}>
         <label style={{ display: 'block', marginBottom: 4, fontWeight: 600 }}>
           Tên lớp học:
@@ -261,10 +264,10 @@ function EditClassForm({ classItem, onClose, onSuccess, isCreate = false }) {
       </div>
 
       {msg && (
-        <div style={{ 
-          padding: 8, 
-          marginBottom: 16, 
-          borderRadius: 4, 
+        <div style={{
+          padding: 8,
+          marginBottom: 16,
+          borderRadius: 4,
           backgroundColor: msg.includes('thành công') ? '#d4edda' : '#f8d7da',
           color: msg.includes('thành công') ? '#155724' : '#721c24'
         }}>
@@ -306,4 +309,4 @@ function EditClassForm({ classItem, onClose, onSuccess, isCreate = false }) {
       </div>
     </form>
   );
-} 
+}

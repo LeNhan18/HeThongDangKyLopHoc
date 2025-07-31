@@ -1,5 +1,5 @@
 import React from "react";
-import "./Hero.css";
+import "./css/Hero.css";
 const heroImg = "https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=600&q=80";
 
 export default function Hero() {

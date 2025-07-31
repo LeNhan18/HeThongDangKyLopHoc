@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import CourseCard from "./CourseCard";
-import "./CourseList.css";
+import "./css/CourseList.css";
 import EditCourseForm from "./EditCourseForm";
 
 export default function CourseList({ user, onRequireAuth }) {

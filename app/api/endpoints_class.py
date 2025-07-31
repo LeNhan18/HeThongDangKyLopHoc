@@ -41,7 +41,21 @@ async def register_class_endpoint(
     print(f"🔍 DEBUG: Current user from dependency: ID={current_user.id}, Email={current_user.email}")
     print(f"🔍 DEBUG: User roles: {current_user.roles}")
     
-    return class_service.register_class(db, class_id, current_user)
+    result = class_service.register_class(db, class_id, current_user)
+    # Gửi thông báo cho admin/teacher khi có đăng ký mới
+    try:
+        await send_notification_to_staff(
+            notification_type="new_registration",
+            message=f"Học viên {current_user.email} đã đăng ký lớp học mới",
+            data={
+                "class_id": class_id,
+                "student_email": current_user.email,
+                "student_name": current_user.name
+            }
+        )
+    except Exception as e:
+        print(f"Lỗi gửi thông báo: {e}")
+    return result
 
 @router.post("/register_class_old/{class_id}")
 async def register_class_old(class_id: int, db: Session = Depends(get_db), user: UserSchema = Depends(get_current_user_debug)):

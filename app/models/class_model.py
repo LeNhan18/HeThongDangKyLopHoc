@@ -8,5 +8,6 @@ class Class(Base):
     name = Column(String(255), index=True, nullable=False)
     max_students = Column(Integer, default=30)
     course_id = Column(Integer, ForeignKey("courses.id"))
-    schedule = Column(String(255), nullable=False)
+    from sqlalchemy.types import JSON
+    schedule = Column(JSON, nullable=False)
     course = relationship("Course", back_populates="classes") 
