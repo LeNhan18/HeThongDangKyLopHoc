@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CourseClassStats from '../components/CourseClassStats';
 import ClassStudentsList from '../components/ClassStudentsList';
-import './CourseManagementPage.css';
+import './css/CourseManagementPage.css';
 
 const CourseManagementPage = ({ user }) => {
   const [courses, setCourses] = useState([]);
@@ -17,7 +17,7 @@ const CourseManagementPage = ({ user }) => {
   const [newClass, setNewClass] = useState({
     name: '',
     max_students: 30,
-    schedule: '',
+    schedule: [],
     course_id: null
   });
 
@@ -37,7 +37,15 @@ const CourseManagementPage = ({ user }) => {
       const classesData = await classesRes.json();
       
       setCourses(coursesData);
-      setClasses(classesData);
+      // Normalize schedule: always array
+      setClasses(classesData.map(cls => ({
+        ...cls,
+        schedule: Array.isArray(cls.schedule)
+          ? cls.schedule
+          : (typeof cls.schedule === 'string' && cls.schedule.trim().startsWith('['))
+            ? JSON.parse(cls.schedule)
+            : []
+      })));
     } catch (error) {
       console.error('Lỗi khi tải dữ liệu:', error);
     } finally {
@@ -109,9 +117,9 @@ const CourseManagementPage = ({ user }) => {
       });
 
       if (response.ok) {
-        const result = await response.json();
+        await response.json();
         alert('Tạo lớp học thành công!');
-        setNewClass({ name: '', max_students: 30, schedule: '', course_id: null });
+        setNewClass({ name: '', max_students: 30, schedule: [], course_id: null });
         setShowCreateModal(false);
         fetchData();
       } else {
@@ -239,7 +247,9 @@ const CourseManagementPage = ({ user }) => {
                 </div>
                 <div className="class-details">
                   <p><strong>Khóa học:</strong> {getCourseName(cls.course_id)}</p>
-                  <p><strong>Lịch học:</strong> {cls.schedule}</p>
+                  <p><strong>Lịch học:</strong> {Array.isArray(cls.schedule) && cls.schedule.length > 0
+  ? cls.schedule.map(slot => `${slot.day}: ${slot.start} - ${slot.end}`).join(', ')
+  : 'Chưa có lịch học'}</p>
                   <p><strong>Số học viên tối đa:</strong> {cls.max_students}</p>
                 </div>
               </div>
@@ -333,12 +343,71 @@ const CourseManagementPage = ({ user }) => {
               </div>
               <div className="form-group">
                 <label>Lịch học:</label>
-                <input 
-                  type="text"
-                  value={newClass.schedule}
-                  onChange={(e) => setNewClass({...newClass, schedule: e.target.value})}
-                  placeholder="VD: Thứ 2, 4, 6 - 19:00-21:00"
-                />
+                {Array.isArray(newClass.schedule) && newClass.schedule.length > 0 ? (
+                  newClass.schedule.map((slot, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                      <select
+                        value={slot.day}
+                        onChange={e => {
+                          const updated = [...newClass.schedule];
+                          updated[idx].day = e.target.value;
+                          setNewClass({ ...newClass, schedule: updated });
+                        }}
+                      >
+                        <option value="">Chọn thứ</option>
+                        <option value="Thứ 2">Thứ 2</option>
+                        <option value="Thứ 3">Thứ 3</option>
+                        <option value="Thứ 4">Thứ 4</option>
+                        <option value="Thứ 5">Thứ 5</option>
+                        <option value="Thứ 6">Thứ 6</option>
+                        <option value="Thứ 7">Thứ 7</option>
+                        <option value="Chủ nhật">Chủ nhật</option>
+                      </select>
+                      <input
+                        type="time"
+                        value={slot.start}
+                        onChange={e => {
+                          const updated = [...newClass.schedule];
+                          updated[idx].start = e.target.value;
+                          setNewClass({ ...newClass, schedule: updated });
+                        }}
+                      />
+                      <span>-</span>
+                      <input
+                        type="time"
+                        value={slot.end}
+                        onChange={e => {
+                          const updated = [...newClass.schedule];
+                          updated[idx].end = e.target.value;
+                          setNewClass({ ...newClass, schedule: updated });
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-small btn-danger"
+                        onClick={() => {
+                          const updated = newClass.schedule.filter((_, i) => i !== idx);
+                          setNewClass({ ...newClass, schedule: updated });
+                        }}
+                      >
+                        Xóa
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ color: '#888', marginBottom: 8 }}>Chưa có lịch học nào</div>
+                )}
+                <button
+                  type="button"
+                  className="btn btn-small btn-info"
+                  onClick={() => {
+                    const updated = Array.isArray(newClass.schedule) ? [...newClass.schedule] : [];
+                    updated.push({ day: '', start: '', end: '' });
+                    setNewClass({ ...newClass, schedule: updated });
+                  }}
+                >
+                  + Thêm khung lịch
+                </button>
               </div>
               <div className="form-group">
                 <label>Khóa học (tùy chọn):</label>

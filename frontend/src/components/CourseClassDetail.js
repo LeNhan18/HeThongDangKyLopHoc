@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './CourseClassDetail.css';
+import './css/CourseClassDetail.css';
 
 const CourseClassDetail = ({ courseId, classId }) => {
   const [courseData, setCourseData] = useState(null);

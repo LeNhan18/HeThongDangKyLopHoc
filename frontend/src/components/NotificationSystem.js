@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import './NotificationSystem.css';
+import './css/NotificationSystem.css';
 
 export default function NotificationSystem({ user }) {
   const [notifications, setNotifications] = useState([]);
   const [ws, setWs] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [showPanel, setShowPanel] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -36,7 +37,10 @@ export default function NotificationSystem({ user }) {
         
         // Thêm thông báo mới vào đầu danh sách
         setNotifications(prev => [notification, ...prev.slice(0, 9)]); // Giữ tối đa 10 thông báo
-        
+        // Nếu panel đang đóng thì hiển thị badge, nếu đang mở thì không
+        if (!showPanel) {
+          // Có thể thêm hiệu ứng rung chuông nếu muốn
+        }
         // Hiển thị toast notification
         showToast(notification);
       } catch (error) {
@@ -130,22 +134,23 @@ export default function NotificationSystem({ user }) {
     <div className="notification-system">
       {/* Notification Bell */}
       <div className="notification-bell">
-        <button className="bell-button" onClick={() => setNotifications(prev => [...prev])}>
+        <button className="bell-button" onClick={() => setShowPanel((prev) => !prev)}>
           🔔
-          {notifications.length > 0 && (
+          {notifications.length > 0 && !showPanel && (
             <span className="notification-badge">{notifications.length}</span>
           )}
         </button>
-        
         {/* Notification Panel */}
-        {notifications.length > 0 && (
+        {showPanel && (
           <div className="notification-panel">
             <div className="notification-header">
               <h3>Thông báo ({notifications.length})</h3>
               <button onClick={clearNotifications} className="clear-btn">Xóa tất cả</button>
             </div>
             <div className="notification-list">
-              {notifications.map((notification, index) => (
+              {notifications.length === 0 ? (
+                <div className="notification-empty">Không có thông báo nào</div>
+              ) : notifications.map((notification, index) => (
                 <div key={index} className="notification-item">
                   <div className="notification-icon">
                     {getNotificationIcon(notification.type)}
@@ -173,11 +178,10 @@ export default function NotificationSystem({ user }) {
           </div>
         )}
       </div>
-      
       {/* Connection Status */}
       <div className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
         {isConnected ? '🟢' : '🔴'} {isConnected ? 'Đã kết nối' : 'Mất kết nối'}
       </div>
     </div>
   );
-} 
+}

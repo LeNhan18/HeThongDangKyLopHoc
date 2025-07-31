@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./AuthForm.css";
+import "./css/AuthForm.css";
 import { useNavigate } from "react-router-dom";
 
 export default function AuthForm({ onAuthSuccess }) {

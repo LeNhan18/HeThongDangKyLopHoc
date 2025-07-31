@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import NotificationSystem from "./NotificationSystem";
-import "./Header.css";
+import "./css/Header.css";
 
 export default function Header({ user, onLogout }) {
   const navigate = useNavigate();

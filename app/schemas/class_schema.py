@@ -1,10 +1,10 @@
 from pydantic import BaseModel
-from typing import Optional, Any
+from typing import Optional, Any, List, Dict
 
 class ClassBase(BaseModel):
     name: str
     max_students: Optional[int] = 30
-    schedule: str
+    schedule: List[Dict]
 
 class ClassCreate(ClassBase):
     course_id: Optional[int] = None
@@ -12,7 +12,7 @@ class ClassCreate(ClassBase):
 class ClassUpdate(ClassBase):
     name: Optional[str] = None
     max_students: Optional[int] = None
-    schedule: Optional[str] = None
+    schedule: Optional[List[Dict]] = None
     course_id: Optional[int] = None
 
 class Class(ClassBase):
