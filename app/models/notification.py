@@ -1,5 +1,8 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from datetime import datetime
+
+from sqlalchemy.orm import relationship
+
 from app.database import Base
 
 class Notification(Base):
@@ -8,4 +11,5 @@ class Notification(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     message = Column(String(1000))
     is_read = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow) 
+    created_at = Column(DateTime, default=datetime.utcnow)
+    user = relationship("User", back_populates="notifications")

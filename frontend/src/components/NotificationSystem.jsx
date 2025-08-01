@@ -30,21 +30,44 @@ export default function NotificationSystem({ user }) {
  useEffect(() => {
   if (!user || !user.id) return;
 
-  const wsUrl = `ws://localhost:8000/ws/user/${user.id}/notifications`;
+  // Xác định WebSocket endpoint dựa trên role của user
+  let wsUrl;
+  const isAdmin = user.roles && user.roles.some(role => role.toLowerCase() === 'admin');
+  const isTeacher = user.roles && user.roles.some(role => role.toLowerCase() === 'teacher');
+  
+  if (isAdmin) {
+    wsUrl = `ws://localhost:8000/ws/admin/notifications`;
+  } else if (isTeacher) {
+    wsUrl = `ws://localhost:8000/ws/teacher/notifications`;
+  } else {
+    wsUrl = `ws://localhost:8000/ws/user/${user.id}/notifications`;
+  }
+
+  console.log(`Connecting to WebSocket: ${wsUrl}`);
   const websocket = new WebSocket(wsUrl);
 
-  websocket.onopen = () => setIsConnected(true);
+  websocket.onopen = () => {
+    setIsConnected(true);
+    console.log(`Connected to WebSocket: ${wsUrl}`);
+  };
   websocket.onmessage = (event) => {
     try {
       const notification = JSON.parse(event.data);
+      console.log('Received notification:', notification);
       setNotifications(prev => [notification, ...prev.slice(0, 9)]);
       showToast(notification);
     } catch (error) {
       console.error('Error parsing notification:', error);
     }
   };
-  websocket.onclose = () => setIsConnected(false);
-  websocket.onerror = () => setIsConnected(false);
+  websocket.onclose = () => {
+    setIsConnected(false);
+    console.log(`WebSocket closed: ${wsUrl}`);
+  };
+  websocket.onerror = (error) => {
+    setIsConnected(false);
+    console.error('WebSocket error:', error);
+  };
 
   return () => websocket.close();
 }, [user, showToast]);

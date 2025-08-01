@@ -7,7 +7,8 @@ export default function ClassCard({
   onRegister,
   onUnregister,
   onEdit,
-  onDelete
+  onDelete,
+  onChangeSchedule
 }) {
   if (!classItem) {
     return <div>Không có dữ liệu lớp học</div>;
@@ -23,53 +24,54 @@ export default function ClassCard({
 
   // --- Hàm định dạng lịch học ---
   const formatSchedule = schedule => {
-    if (!schedule || schedule.length === 0) {
+    if (!schedule) {
       return 'Chưa có lịch';
     }
 
-    let scheduleArray = [];
+    // Nếu schedule là string
     if (typeof schedule === 'string') {
       try {
-        scheduleArray = JSON.parse(schedule);
+        // Thử parse JSON nếu có thể
+        const parsed = JSON.parse(schedule);
+        if (Array.isArray(parsed)) {
+          return parsed
+            .map(slot => `${slot.day}: ${slot.start} - ${slot.end}`)
+            .join('; ');
+        }
       } catch (error) {
-        return schedule; // nếu không parse được thì trả về chuỗi gốc
+        // Nếu không parse được, trả về string gốc
+        return schedule;
       }
-    } else if (Array.isArray(schedule)) {
-      scheduleArray = schedule;
-    } else if (schedule.day && schedule.start && schedule.end) {
-      return `${schedule.day}: ${schedule.start} - ${schedule.end}`;
-    } else {
-      return 'Định dạng lịch không hợp lệ';
+      return schedule;
     }
 
-    if (Array.isArray(scheduleArray)) {
-      return scheduleArray
-        .map(slot => `${slot.day}: ${slot.start} - ${slot.end}`)
+    // Nếu schedule là array
+    if (Array.isArray(schedule)) {
+      if (schedule.length === 0) {
+        return 'Chưa có lịch';
+      }
+      return schedule
+        .map(slot => {
+          if (typeof slot === 'object' && slot.day && slot.start && slot.end) {
+            return `${slot.day}: ${slot.start} - ${slot.end}`;
+          }
+          return String(slot);
+        })
         .join('; ');
     }
 
+    // Nếu schedule là object đơn lẻ
+    if (typeof schedule === 'object' && schedule.day && schedule.start && schedule.end) {
+      return `${schedule.day}: ${schedule.start} - ${schedule.end}`;
+    }
+
+    // Fallback: convert về string
     return String(schedule);
   };
 
-  const handleRegister = () => {
-    if (!user) {
-      alert('Vui lòng đăng nhập để đăng ký lớp học');
-      return;
-    }
-    if (onRegister) {
-      onRegister(classItem.id);
-    }
-  };
 
-  const handleUnregister = () => {
-    if (!user) {
-      alert('Vui lòng đăng nhập để hủy đăng ký');
-      return;
-    }
-    if (onUnregister) {
-      onUnregister(classItem.id);
-    }
-  };
+
+
 
   const handleEdit = () => {
     if (onEdit) {
@@ -83,6 +85,12 @@ export default function ClassCard({
       if (onDelete) {
         onDelete(classItem.id);
       }
+    }
+  };
+
+  const handleChangeSchedule = () => {
+    if (onChangeSchedule) {
+      onChangeSchedule(classItem);
     }
   };
 
@@ -119,43 +127,39 @@ export default function ClassCard({
         <div className="info-item">
           <span className="info-label">📚 Khóa học:</span>
           <span className="info-value">
-            {classItem.course?.name || 'Chưa có khóa học'}
+            {typeof classItem.course === 'string' 
+              ? classItem.course 
+              : classItem.course?.name || 'Chưa có khóa học'}
           </span>
         </div>
       </div>
 
       <div className="class-actions">
         {isStudent && (
-          <>
-            {classItem.is_registered ? (
-              <button className="cancel-btn" onClick={handleUnregister}>
-                Hủy đăng ký
-              </button>
+            classItem.is_registered ? (
+                <button
+                    className="unregister-btn"
+                    onClick={() => onUnregister && onUnregister(classItem.id)}
+                >
+                  Hủy đăng ký
+                </button>
             ) : (
-              <button
-                className="register-btn"
-                onClick={handleRegister}
-                disabled={
-                  classItem.current_count >= classItem.max_students
-                }
-              >
-                {classItem.current_count >= classItem.max_students
-                  ? 'Đã đầy'
-                  : 'Đăng ký'}
-              </button>
-            )}
-          </>
+                <button
+                    className="register-btn"
+                    onClick={() => onRegister(classItem.id)}
+                    disabled={classItem.current_count >= classItem.max_students}
+                >
+                  {classItem.current_count >= classItem.max_students ? 'Đã đầy' : 'Đăng ký'}
+                </button>
+            )
         )}
 
         {canManage && (
-          <div className="manage-buttons">
-            <button className="edit-btn" onClick={handleEdit}>
-              ✏️ Sửa
-            </button>
-            <button className="delete-btn" onClick={handleDelete}>
-              🗑️ Xóa
-            </button>
-          </div>
+            <div className="manage-buttons">
+              <button className="edit-btn" onClick={handleEdit}>✏️ Sửa</button>
+              <button className="schedule-btn" onClick={handleChangeSchedule}>📅 Đổi lịch</button>
+              <button className="delete-btn" onClick={handleDelete}>🗑️ Xóa</button>
+            </div>
         )}
       </div>
     </div>

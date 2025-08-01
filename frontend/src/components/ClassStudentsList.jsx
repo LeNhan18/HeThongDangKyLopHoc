@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import './css/ClassStudentsList.css';
 
-const ClassStudentsList = ({ classId, onClose }) => {
+const ClassStudentsList = ({ classId, onClose, onUnregister, onRegister }) => {
   const [studentsData, setStudentsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,7 +25,7 @@ const ClassStudentsList = ({ classId, onClose }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [classId]);
 
   if (loading) {
     return (
@@ -145,6 +145,17 @@ const ClassStudentsList = ({ classId, onClose }) => {
             <button className="btn btn-primary" onClick={fetchStudentsData}>
               🔄 Làm mới
             </button>
+            {studentsData && studentsData.class && (
+              studentsData.class.is_registered ? (
+                <button className="btn btn-danger" onClick={() => onUnregister && onUnregister(studentsData.class.id)}>
+                  Hủy đăng ký
+                </button>
+              ) : (
+                <button className="btn btn-success" onClick={() => onRegister && onRegister(studentsData.class.id)}>
+                  Đăng ký
+                </button>
+              )
+            )}
           </div>
         </div>
       </div>

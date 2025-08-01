@@ -1,19 +1,54 @@
 from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException
-
+from app.api.endpoints_ws import send_notification_to_user
+from app.api.endpoints_ws import ws_manager
 from app.models.attendance import Attendance
 from app.models.class_model import Class as ClassModel
 from app.models.course import Course as CourseModel
 from app.models.feedback import Feedback
 from app.models.history import ClassHistory
+from app.models.notification import Notification
 from app.schemas.class_schema import Class as ClassSchema, ClassCreate
 from app.schemas.user import User
 from app.CRUD import get_class_by_id, check_schedule_conflict, create_registration, create_class_history, count_students_in_class, get_class_histories
 from app.models.registration import Registration
 
-def get_all_classes(db: Session):
-    db_classes = db.query(ClassModel).all()
-    return [ClassSchema.model_validate(cls) for cls in db_classes]
+
+def get_all_classes(db: Session, user_id: int | None = None):
+    classes = db.query(ClassModel).all()
+    result = []
+    for cls in classes:
+        is_registered = False
+        if user_id:
+            is_registered = db.query(Registration).filter_by(
+                class_id=cls.id,
+                student_id=user_id
+            ).first() is not None
+
+        # Convert schedule từ JSON object array sang string format
+        schedule_str = cls.schedule
+        if isinstance(cls.schedule, list):
+            schedule_str = '; '.join([
+                f"{slot['day']}: {slot['start']} - {slot['end']}" 
+                for slot in cls.schedule 
+                if isinstance(slot, dict) and 'day' in slot and 'start' in slot and 'end' in slot
+            ])
+        elif isinstance(cls.schedule, str):
+            schedule_str = cls.schedule
+        else:
+            schedule_str = str(cls.schedule)
+
+        result.append({
+            "id": cls.id,
+            "name": cls.name,
+            "max_students": cls.max_students,
+            "current_count": db.query(Registration).filter_by(class_id=cls.id).count(),
+            "schedule": schedule_str,
+            "course_id": cls.course_id,
+            "course": cls.course.name if cls.course else None,
+            "is_registered": is_registered
+        })
+    return result
 def is_time_overlap(start1, end1, start2, end2):
     return start1 < end2 and end1 > start2
 
@@ -25,7 +60,7 @@ def has_schedule_conflict(new_schedule, other_schedule):
                     return True
     return False
 
-def create_class(db: Session, class_data: ClassCreate, user: User):
+def create_class(db: Session, class_data: ClassCreate,user_id :int):
     # Đảm bảo schedule là list
     data = class_data.model_dump()
     if not isinstance(data['schedule'], list):
@@ -35,6 +70,7 @@ def create_class(db: Session, class_data: ClassCreate, user: User):
     for cls in all_classes:
         if has_schedule_conflict(data['schedule'], cls.schedule):
             raise HTTPException(status_code=400, detail=f"Lịch học bị trùng với lớp: {cls.name}")
+    data['create_by'] = user_id
     db_class = ClassModel(**data)
     db.add(db_class)
     db.commit()
@@ -136,67 +172,76 @@ def delete_class(db: Session, class_id: int, user: User):
     return {"message": f"Đã xóa thành công lớp học ID {class_id} và các dữ liệu liên quan."}
 
 
-
-def register_class(db: Session, class_id: int, user: User):
-    print("DEBUG user.roles:", user.roles)
-    # Debug: In thông tin user hiện tại
+def register_class(db: Session, class_id: int, user):
     print(f"=== DEBUG REGISTRATION ===")
-    print(f"User ID: {user.id}")
-    print(f"User email/username: {getattr(user, 'email', 'N/A')}")
-    print(f"User roles: {user.roles}")
-    print(f"Class ID: {class_id}")
+    print(f"User ID: {user.id}, Email: {getattr(user, 'email', 'N/A')}")
+    print(f"Roles: {user.roles}, Class ID: {class_id}")
 
-    # if not user.roles or "student" not in [r.lower() for r in user.roles]:
-    #     raise HTTPException(status_code=403, detail="Chỉ học viên mới được đăng ký lớp.")
-
-    class_obj = get_class_by_id(db, class_id)
+    # 1️⃣ Lấy lớp học
+    class_obj = db.query(ClassModel).filter(ClassModel.id == class_id).first()
     if not class_obj:
         raise HTTPException(status_code=404, detail="Không tìm thấy lớp học.")
 
-    # Debug: Kiểm tra tất cả registrations cho class này
-    all_registrations = db.query(Registration).filter(
-        Registration.class_id == class_id
-    ).all()
-
-    print(f"All registrations for class {class_id}:")
-    for reg in all_registrations:
-        print(f"  - Student ID: {reg.student_id}")
-
-    # Kiểm tra xem đã đăng ký lớp này chưa
+    # 2️⃣ Kiểm tra đã đăng ký chưa
     existing_reg = db.query(Registration).filter(
         Registration.student_id == user.id,
         Registration.class_id == class_id
     ).first()
-
-    print(f"Query: SELECT * FROM registrations WHERE student_id={user.id} AND class_id={class_id}")
-    print(f"Existing registration found: {existing_reg is not None}")
-
     if existing_reg:
-        print(f"Existing registration details:")
-        print(f"  - ID: {existing_reg.id}")
-        print(f"  - Student ID: {existing_reg.student_id}")
-        print(f"  - Class ID: {existing_reg.class_id}")
-        print(f"  - Created at: {getattr(existing_reg, 'created_at', 'N/A')}")
-        raise HTTPException(status_code=400, detail=f"Bạn đã đăng ký lớp này rồi. User ID: {user.id}")
+        raise HTTPException(status_code=400, detail=f"Bạn đã đăng ký lớp này rồi.")
 
+    # 3️⃣ Tạo đăng ký mới
     try:
-        # Tạo đăng ký mới
         db_registration = Registration(student_id=user.id, class_id=class_id)
         db.add(db_registration)
         db.commit()
         db.refresh(db_registration)
 
-        print(f"Successfully created registration:")
-        print(f"  - Registration ID: {db_registration.id}")
-        print(f"  - Student ID: {db_registration.student_id}")
-        print(f"  - Class ID: {db_registration.class_id}")
+        print(f"✅ Registration created: ID={db_registration.id}")
 
+        # 4️⃣ Ghi lịch sử
         create_class_history(db, class_id=class_id, changed_by=user.id, change_type="register", note="Đăng ký lớp")
+
+        # 5️⃣ Đếm số học viên hiện tại
         count = count_students_in_class(db, class_id)
+
+        # 6️⃣ Gửi thông báo cho người tạo lớp (created_by)
+        creator_id = getattr(class_obj, "created_by", None)
+        if creator_id:
+            print(f"🔔 Gửi thông báo cho người tạo lớp user_id={creator_id}")
+            try:
+                import asyncio
+                asyncio.create_task(send_notification_to_user(
+                    creator_id,
+                    notification_type="new_registration",
+                    message=f"Học viên {user.email} vừa đăng ký lớp {class_obj.name}",
+                    data={
+                        "class_id": class_id,
+                        "student_id": user.id,
+                        "student_email": user.email,
+                        "student_name": user.name
+                    }
+                ))
+            except RuntimeError:
+                # Nếu đang trong context đồng bộ (không phải async) thì gửi bằng loop
+                loop = asyncio.get_event_loop()
+                loop.create_task(send_notification_to_user(
+                    creator_id,
+                    notification_type="new_registration",
+                    message=f"Học viên {user.email} vừa đăng ký lớp {class_obj.name}",
+                    data={
+                        "class_id": class_id,
+                        "student_id": user.id,
+                        "student_email": user.email,
+                        "student_name": user.name
+                    }
+                ))
+
         return {"message": "Đăng ký thành công", "current_count": count}
+
     except Exception as e:
-        print(f"Error during registration: {str(e)}")
         db.rollback()
+        print(f"❌ Error during registration: {e}")
         raise HTTPException(status_code=400, detail=f"Lỗi khi đăng ký: {str(e)}")
 def change_class_schedule(db: Session, class_id: int, new_schedule: str, user: User):
     if not user.roles or not any(r.lower() in ["teacher", "admin"] for r in user.roles):
@@ -405,4 +450,33 @@ def get_class_students_count(db: Session, class_id: int):
         "max_students": db_class.max_students,
         "available_slots": db_class.max_students - student_count,
         "occupancy_rate": round((student_count / db_class.max_students) * 100, 1) if db_class.max_students > 0 else 0
-    } 
+    }
+def unregister_class(db: Session, class_id: int,user):
+    # Lấy thông tin lớp học trước khi hủy đăng ký
+    class_info = db.query(ClassModel).filter(ClassModel.id == class_id).first()
+    if not class_info:
+        raise HTTPException(status_code=404, detail="Lớp học không tồn tại")
+    
+    registration = db.query(Registration).filter_by(
+        student_id = user.id,
+        class_id = class_id
+    ).first()
+    if not registration:
+        raise HTTPException(status_code=404,detail="Bạn chưa đăng ký lớp này")
+    db.delete(registration)
+    db.commit()
+    # Cập nhật lịch sử (nếu có)
+    create_class_history(
+        db,
+        class_id=class_id,
+        changed_by=user.id,
+        change_type="unregister",
+        note="Hủy đăng ký lớp"
+    )
+
+    count = count_students_in_class(db, class_id)
+    return {
+        "message": "Hủy đăng ký thành công", 
+        "current_count": count,
+        "class_name": class_info.name
+    }
