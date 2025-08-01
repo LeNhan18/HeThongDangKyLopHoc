@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import './css/ClassStudentsList.css';
 
 const ClassStudentsList = ({ classId, onClose, onUnregister, onRegister }) => {
@@ -26,6 +26,11 @@ const ClassStudentsList = ({ classId, onClose, onUnregister, onRegister }) => {
       setLoading(false);
     }
   }, [classId]);
+
+  // Tự động fetch dữ liệu khi component được mount
+  useEffect(() => {
+    fetchStudentsData();
+  }, [fetchStudentsData]);
 
   if (loading) {
     return (

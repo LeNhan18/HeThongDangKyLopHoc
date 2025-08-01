@@ -34,16 +34,6 @@ const ChangeScheduleModal = ({ classItem, onClose, onSuccess }) => {
     setScheduleSlots(updated);
   };
 
-  const formatScheduleForAPI = () => {
-    return scheduleSlots
-      .filter(slot => slot.day && slot.start && slot.end)
-      .map(slot => {
-        const dayLabel = daysOfWeek.find(d => d.value === slot.day)?.label || slot.day;
-        return `${dayLabel}: ${slot.start} - ${slot.end}`;
-      })
-      .join('; ');
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -72,23 +62,29 @@ const ChangeScheduleModal = ({ classItem, onClose, onSuccess }) => {
       }
     }
 
-    const newScheduleString = formatScheduleForAPI();
-
-    if (newScheduleString === classItem.schedule) {
-      setError('Lịch học mới không được giống lịch học cũ');
-      return;
-    }
+    // Chuẩn bị dữ liệu để gửi lên server
+    const scheduleData = validSlots.map(slot => {
+      const dayLabel = daysOfWeek.find(d => d.value === slot.day)?.label || slot.day;
+      return {
+        day: dayLabel,
+        start: slot.start,
+        end: slot.end
+      };
+    });
 
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch(`http://localhost:8000/class/${classItem.id}/change_schedule?new_schedule=${encodeURIComponent(newScheduleString)}`, {
+      const response = await fetch(`http://localhost:8000/class/${classItem.id}/change_schedule`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include'
+        credentials: 'include',
+        body: JSON.stringify({
+          schedule: scheduleData
+        })
       });
 
       if (!response.ok) {

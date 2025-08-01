@@ -1,3 +1,4 @@
+import json
 from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException
 from app.api.endpoints_ws import send_notification_to_user
@@ -53,11 +54,23 @@ def is_time_overlap(start1, end1, start2, end2):
     return start1 < end2 and end1 > start2
 
 def has_schedule_conflict(new_schedule, other_schedule):
+    # Xử lý trường hợp other_schedule là string JSON
+    if isinstance(other_schedule, str):
+        try:
+            other_schedule = json.loads(other_schedule)
+        except (json.JSONDecodeError, TypeError):
+            return False
+    
+    # Đảm bảo cả hai đều là list
+    if not isinstance(new_schedule, list) or not isinstance(other_schedule, list):
+        return False
+        
     for slot in new_schedule:
         for other in other_schedule:
-            if slot['day'] == other['day']:
-                if is_time_overlap(slot['start'], slot['end'], other['start'], other['end']):
-                    return True
+            if isinstance(slot, dict) and isinstance(other, dict):
+                if slot.get('day') == other.get('day'):
+                    if is_time_overlap(slot.get('start'), slot.get('end'), other.get('start'), other.get('end')):
+                        return True
     return False
 
 def create_class(db: Session, class_data: ClassCreate,user_id :int):
@@ -70,14 +83,23 @@ def create_class(db: Session, class_data: ClassCreate,user_id :int):
     for cls in all_classes:
         if has_schedule_conflict(data['schedule'], cls.schedule):
             raise HTTPException(status_code=400, detail=f"Lịch học bị trùng với lớp: {cls.name}")
-    data['create_by'] = user_id
+    data['created_by'] = user_id
     db_class = ClassModel(**data)
     db.add(db_class)
     db.commit()
     db.refresh(db_class)
-    return ClassSchema.model_validate(db_class)
+    
+    # Trả về dữ liệu đơn giản thay vì ClassSchema để tránh lỗi serialization
+    return {
+        "id": db_class.id,
+        "name": db_class.name,
+        "max_students": db_class.max_students,
+        "schedule": db_class.schedule,
+        "course_id": db_class.course_id,
+        "created_by": db_class.created_by
+    }
 
-def update_class(db: Session, class_id: int, class_data: ClassCreate, user: User):
+def update_class(db: Session, class_id: int, class_data: ClassCreate, user_id: int):
     db_class = db.query(ClassModel).filter(ClassModel.id == class_id).first()
     if not db_class:
         raise HTTPException(status_code=404, detail="Không tìm thấy lớp học")
@@ -126,14 +148,22 @@ def update_class(db: Session, class_id: int, class_data: ClassCreate, user: User
         create_class_history(
             db, 
             class_id=class_id, 
-            changed_by=user.id, 
+            changed_by=user_id, 
             change_type="update_class", 
             note="; ".join(changes)
         )
     
-    return ClassSchema.model_validate(db_class)
+    # Trả về dữ liệu đơn giản thay vì ClassSchema để tránh lỗi serialization
+    return {
+        "id": db_class.id,
+        "name": db_class.name,
+        "max_students": db_class.max_students,
+        "schedule": db_class.schedule,
+        "course_id": db_class.course_id,
+        "created_by": db_class.created_by
+    }
 
-def delete_class(db: Session, class_id: int, user: User):
+def delete_class(db: Session, class_id: int, user_id: int):
     """
     Xóa một lớp học và tất cả các bản ghi liên quan một cách an toàn.
     """
@@ -243,7 +273,7 @@ def register_class(db: Session, class_id: int, user):
         db.rollback()
         print(f"❌ Error during registration: {e}")
         raise HTTPException(status_code=400, detail=f"Lỗi khi đăng ký: {str(e)}")
-def change_class_schedule(db: Session, class_id: int, new_schedule: str, user: User):
+def change_class_schedule(db: Session, class_id: int, new_schedule: list, user: User):
     if not user.roles or not any(r.lower() in ["teacher", "admin"] for r in user.roles):
         raise HTTPException(status_code=403, detail="Chỉ giảng viên hoặc quản trị mới được thay đổi lịch học.")
     class_obj = get_class_by_id(db, class_id)

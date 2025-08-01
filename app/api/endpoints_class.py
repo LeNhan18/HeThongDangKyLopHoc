@@ -77,7 +77,13 @@ def get_class_count(class_id: int, db: Session = Depends(get_db)):
     return class_service.get_class_count(db, class_id)
 
 @router.post("/class/{class_id}/change_schedule")
-async def change_class_schedule(class_id: int, new_schedule: str, db: Session = Depends(get_db), user: UserSchema = Depends(get_current_user_debug)):
+async def change_class_schedule(
+    class_id: int, 
+    schedule_data: dict, 
+    db: Session = Depends(get_db), 
+    user: UserSchema = Depends(get_current_user_debug)
+):
+    new_schedule = schedule_data.get("schedule", [])
     result = class_service.change_class_schedule(db, class_id, new_schedule, user)
     
     # Gửi thông báo cho tất cả thành viên trong lớp
@@ -115,22 +121,22 @@ async def change_class_schedule(class_id: int, new_schedule: str, db: Session = 
 def get_class_history(class_id: int, db: Session = Depends(get_db), user: UserSchema = Depends(get_current_user_debug)):
     return class_service.get_class_history(db, class_id, user)
 
-@router.post("/class/", response_model=ClassSchema)
+@router.post("/class/")
 def create_class(
     class_data: ClassCreate,
     db: Session = Depends(get_db),
     user: UserSchema = Depends(get_current_user_debug)
 ):
     # Lấy user_id từ user schema
-    return class_service.create_class(db, class_data, user)
+    return class_service.create_class(db, class_data, user.id)
 
-@router.put("/class/{class_id}", response_model=ClassSchema)
+@router.put("/class/{class_id}")
 def update_class(class_id: int, class_data: ClassCreate, db: Session = Depends(get_db), user: UserSchema = Depends(get_current_user_debug)):
-    return class_service.update_class(db, class_id, class_data, user)
+    return class_service.update_class(db, class_id, class_data, user.id)
 
 @router.delete("/class/{class_id}")
 def delete_class(class_id: int, db: Session = Depends(get_db), user: UserSchema = Depends(get_current_user_debug)):
-    return class_service.delete_class(db, class_id, user) 
+    return class_service.delete_class(db, class_id, user.id) 
 
 @router.post("/class/{class_id}/assign_course/{course_id}")
 def assign_course_to_class(

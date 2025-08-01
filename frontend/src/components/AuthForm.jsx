@@ -3,19 +3,7 @@ import axios from "axios";
 import "./css/AuthForm.css";
 import { useNavigate } from "react-router-dom";
 
-export default function AuthFo<div className = "panel left-panel">
-            <div className="content">
-  <h3>Chưa có tài khoản?</h3>
-  <p>Tạo tài khoản mới để bắt đầu hành trình học tập cùng chúng tôi</p>
-  <button className="btn transparent" type="button" onClick={() => {
-    console.log("Switching to signup mode");
-    setIsLogin(false);
-  }}>
-    Đăng ký
-  </button>
-</div>
-  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Cpath fill='%23f59e0b' d='M100 200c0-33.1 26.9-60 60-60s60 26.9 60 60-26.9 60-60 60-60-26.9-60-60z'/%3E%3Cpath fill='%23fbbf24' d='M220 120c0-22.1 17.9-40 40-40s40 17.9 40 40-17.9 40-40 40-40-17.9-40-40z'/%3E%3C/svg%3E" className="image" alt="Signup illustration" />
-          </div > ccess }) {
+export default function AuthForm({ onAuthSuccess }) {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [form, setForm] = useState({ email: "", password: "", name: "", role: "student" });
