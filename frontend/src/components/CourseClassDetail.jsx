@@ -7,11 +7,7 @@ const CourseClassDetail = ({ courseId, classId }) => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('course');
 
-  useEffect(() => {
-    fetchData();
-  }, [courseId, classId]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const promises = [];

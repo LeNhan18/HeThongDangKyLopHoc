@@ -6,11 +6,7 @@ const ClassStudentsList = ({ classId, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchStudentsData();
-  }, [classId]);
-
-  const fetchStudentsData = async () => {
+  const fetchStudentsData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
