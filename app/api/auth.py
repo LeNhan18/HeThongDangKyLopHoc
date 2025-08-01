@@ -5,10 +5,13 @@ from app.models.user import User as UserModel
 from app.core.security import get_password_hash, verify_password
 
 # Thêm prefix và tags ngay khi tạo router
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter()
 
 @router.post("/login")
-def login(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db), request: Request = None):
+def login(email: str = Form(...), 
+          password: str = Form(...), 
+          db: Session = Depends(get_db), 
+          request: Request = None):
     """Login function với debug"""
     print(f"🔍 DEBUG: Login attempt - Email: {email}")
 
@@ -24,11 +27,9 @@ def login(email: str = Form(...), password: str = Form(...), db: Session = Depen
         raise HTTPException(status_code=401, detail="Sai email hoặc mật khẩu")
 
     print(f"✅ DEBUG: Password verified for user: {email}")
-
     # Lưu user id vào session để các request sau nhận đúng user
-    if request and hasattr(request, 'session'):
-        request.session["current_user_id"] = user.id
-        print(f"Session set current_user_id = {user.id}")
+    request.session["current_user_id"] = user.id
+    print(f"Session set current_user_id = {user.id}")
 
     return {
         "id": user.id,

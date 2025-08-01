@@ -33,7 +33,7 @@ export default function AuthForm({ onAuthSuccess }) {
         const params = new URLSearchParams();
         params.append("email", form.email);
         params.append("password", form.password);
-        const res = await axios.post("http://localhost:8000/auth/login", params);
+        const res = await axios.post("http://localhost:8000/auth/login", params,{withCredentials: true});
         setMsg("Đăng nhập thành công!");
         onAuthSuccess && onAuthSuccess(res.data);
         navigate("/");
