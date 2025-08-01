@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status,Request
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.class_schema import Class as ClassSchema, ClassCreate, ClassBase
@@ -7,31 +7,25 @@ from app.CRUD import *
 from app.models.class_model import Class as ClassModel
 from app.models.course import Course as CourseModel
 from app.services import class_service
-from app.api.endpoints_ws import send_notification_to_staff
+from app.api.endpoints_ws import send_notification_to_staff, send_notification_to_user
 from app.models.user import User as UserModel
 from app.core.auth import get_current_user_debug
+from app.api.endpoints_ws import ws_manager
 
 router = APIRouter()
 
 
-@router.get("/classes/")  # Bỏ response_model=list[ClassSchema]
-def get_all_classes(db: Session = Depends(get_db)):
-    classes = class_service.get_all_classes(db)
-    return [
-        {
-            "id": cls.id,
-            "name": cls.name,
-            "max_students": cls.max_students,
-            "schedule": cls.schedule,
-            "course_id": cls.course_id,
-            "course": None
-        }
-        for cls in classes
-    ]
+@router.get("/classes/")
+def get_all_classes(
+    db: Session = Depends(get_db),
+    user: UserSchema = Depends(get_current_user_debug)
+):
+    print(f"🔍 DEBUG get_all_classes: User ID = {user.id if user else 'None'}")
+    return class_service.get_all_classes(db, user.id if user else None)
 
 @router.post("/register_class/{class_id}")
 async def register_class_endpoint(
-    class_id: int, 
+    class_id: int,
     db: Session = Depends(get_db),
     current_user: UserSchema = Depends(get_current_user_debug)
 ):
@@ -40,7 +34,7 @@ async def register_class_endpoint(
     print(f"🔍 DEBUG: Class ID: {class_id}")
     print(f"🔍 DEBUG: Current user from dependency: ID={current_user.id}, Email={current_user.email}")
     print(f"🔍 DEBUG: User roles: {current_user.roles}")
-    
+
     result = class_service.register_class(db, class_id, current_user)
     # Gửi thông báo cho admin/teacher khi có đăng ký mới
     try:
@@ -83,24 +77,66 @@ def get_class_count(class_id: int, db: Session = Depends(get_db)):
     return class_service.get_class_count(db, class_id)
 
 @router.post("/class/{class_id}/change_schedule")
-def change_class_schedule(class_id: int, new_schedule: str, db: Session = Depends(get_db), user: UserSchema = Depends(get_current_user_debug)):
-    return class_service.change_class_schedule(db, class_id, new_schedule, user)
+async def change_class_schedule(
+    class_id: int, 
+    schedule_data: dict, 
+    db: Session = Depends(get_db), 
+    user: UserSchema = Depends(get_current_user_debug)
+):
+    new_schedule = schedule_data.get("schedule", [])
+    result = class_service.change_class_schedule(db, class_id, new_schedule, user)
+    
+    # Gửi thông báo cho tất cả thành viên trong lớp
+    try:
+        # Lấy thông tin lớp học
+        class_info = db.query(ClassModel).filter(ClassModel.id == class_id).first()
+        if class_info:
+            # Lấy danh sách học viên trong lớp
+            from app.models.registration import Registration
+            registrations = db.query(Registration).filter(Registration.class_id == class_id).all()
+            
+            # Gửi thông báo cho từng học viên
+            for registration in registrations:
+                await send_notification_to_user(
+                    user_id=registration.student_id,
+                    notification_type="schedule_change",
+                    message=f"Lịch học lớp '{class_info.name}' đã được thay đổi từ '{result['old_schedule']}' sang '{result['new_schedule']}'",
+                    data={
+                        "class_id": class_id,
+                        "class_name": class_info.name,
+                        "old_schedule": result['old_schedule'],
+                        "new_schedule": result['new_schedule'],
+                        "changed_by": user.name or user.email
+                    }
+                )
+            
+            print(f"🔔 Đã gửi thông báo thay đổi lịch cho {len(registrations)} học viên")
+        
+    except Exception as e:
+        print(f"Lỗi gửi thông báo thay đổi lịch: {e}")
+    
+    return result
 
 @router.get("/class/{class_id}/history")
 def get_class_history(class_id: int, db: Session = Depends(get_db), user: UserSchema = Depends(get_current_user_debug)):
     return class_service.get_class_history(db, class_id, user)
 
-@router.post("/class/", response_model=ClassSchema)
-def create_class(class_data: ClassCreate, db: Session = Depends(get_db), user: UserSchema = Depends(get_current_user_debug)):
-    return class_service.create_class(db, class_data, user)
+@router.post("/class/")
+def create_class(
+    class_data: ClassCreate,
+    db: Session = Depends(get_db),
+    user: UserSchema = Depends(get_current_user_debug)
+):
+    # Lấy user_id từ user schema
+    return class_service.create_class(db, class_data, user.id)
 
-@router.put("/class/{class_id}", response_model=ClassSchema)
+@router.put("/class/{class_id}")
 def update_class(class_id: int, class_data: ClassCreate, db: Session = Depends(get_db), user: UserSchema = Depends(get_current_user_debug)):
-    return class_service.update_class(db, class_id, class_data, user)
+    return class_service.update_class(db, class_id, class_data, user.id)
 
 @router.delete("/class/{class_id}")
 def delete_class(class_id: int, db: Session = Depends(get_db), user: UserSchema = Depends(get_current_user_debug)):
-    return class_service.delete_class(db, class_id, user) 
+    return class_service.delete_class(db, class_id, user.id) 
 
 @router.post("/class/{class_id}/assign_course/{course_id}")
 def assign_course_to_class(
@@ -173,50 +209,35 @@ def check_registrations(db: Session = Depends(get_db)):
             for reg in registrations
         ]
     }
-
-# @router.post("/classes/sample-data")
-# def create_sample_classes(db: Session = Depends(get_db)):
-#     """Tạo dữ liệu mẫu cho lớp học"""
-#     sample_classes = [
-#         {
-#             "name": "Lớp Python Cơ bản",
-#             "max_students": 25,
-#             "schedule": "Thứ 2, 4, 6 - 19:00-21:00"
-#         },
-#         {
-#             "name": "Lớp Python Nâng cao",
-#             "max_students": 20,
-#             "schedule": "Thứ 3, 5, 7 - 19:00-21:00"
-#         },
-#         {
-#             "name": "Lớp React Cơ bản",
-#             "max_students": 30,
-#             "schedule": "Thứ 2, 4, 6 - 18:00-20:00"
-#         },
-#         {
-#             "name": "Lớp React Nâng cao",
-#             "max_students": 25,
-#             "schedule": "Thứ 3, 5, 7 - 18:00-20:00"
-#         },
-#         {
-#             "name": "Lớp Database Design",
-#             "max_students": 20,
-#             "schedule": "Thứ 6, 7 - 14:00-17:00"
-#         }
-#     ]
-#
-#     created_classes = []
-#     for class_data in sample_classes:
-#         try:
-#             db_class = ClassModel(**class_data)
-#             db.add(db_class)
-#             created_classes.append(class_data["name"])
-#         except Exception as e:
-#             print(f"Lỗi tạo lớp {class_data['name']}: {e}")
-#
-#     try:
-#         db.commit()
-#         return {"message": f"Đã tạo {len(created_classes)} lớp học mẫu", "classes": created_classes}
-#     except Exception as e:
-#         db.rollback()
-#         raise HTTPException(status_code=500, detail=f"Lỗi khi tạo dữ liệu mẫu: {e}")
+@router.delete("/unregister_class/{class_id}")
+async def unregister_class(class_id: int ,
+                     db: Session =Depends(get_db),
+                     current_user: UserSchema = Depends(get_current_user_debug)
+                     ):
+    """Hủy đăng ký lớp học"""
+    print(f"🔍 DEBUG: Unregister endpoint called")
+    print(f"🔍 DEBUG: Class ID: {class_id}")
+    print(f"🔍 DEBUG: Current user: ID={current_user.id}, Email={current_user.email}")
+    
+    result = class_service.unregister_class(db, class_id, current_user)
+    print(f"🔍 DEBUG: Unregister result: {result}")
+    
+    # Gửi thông báo cho admin/teacher khi có hủy đăng ký
+    try:
+        print(f"🔍 DEBUG: Sending notification...")
+        await send_notification_to_staff(
+            notification_type="unregister",
+            message=f"Học viên {current_user.email} đã hủy đăng ký lớp '{result.get('class_name', 'N/A')}'",
+            data={
+                "class_id": class_id,
+                "class_name": result.get('class_name'),
+                "student_email": current_user.email,
+                "student_name": current_user.name,
+                "current_count": result.get('current_count')
+            }
+        )
+        print(f"🔍 DEBUG: Notification sent successfully")
+    except Exception as e:
+        print(f"Lỗi gửi thông báo hủy đăng ký: {e}")
+    
+    return result

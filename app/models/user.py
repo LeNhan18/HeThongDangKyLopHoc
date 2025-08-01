@@ -10,4 +10,6 @@ class User(Base):
     name = Column(String(255), nullable=True)
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
-    roles = relationship("Role", secondary="user_roles", back_populates="users") 
+    roles = relationship("Role", secondary="user_roles", back_populates="users")
+    created_classes = relationship("Class", back_populates="creator")
+    notifications = relationship("Notification", back_populates="user")

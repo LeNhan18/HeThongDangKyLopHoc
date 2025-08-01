@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './css/CourseClassDetail.css';
 
 const CourseClassDetail = ({ courseId, classId }) => {
@@ -38,7 +38,7 @@ const CourseClassDetail = ({ courseId, classId }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [courseId, classId]);
 
   if (loading) {
     return (

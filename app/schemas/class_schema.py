@@ -26,4 +26,10 @@ class CourseAssignment(BaseModel):
     course_id: int
 
 class CourseRemoval(BaseModel):
-    confirm: bool = True 
+    confirm: bool = True
+class ClassSchema(BaseModel):
+    id: int
+    name: str
+    max_students: int
+    current_count: int
+    is_registered: bool = False
