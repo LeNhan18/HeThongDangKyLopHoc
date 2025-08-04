@@ -1,6 +1,6 @@
 import React from "react";
 import "./css/Hero.css";
-const heroImg = "https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=600&q=80";
+const heroImg = "https://cdn.haitrieu.com/wp-content/uploads/2021/09/Logo-DH-CONG-NGHE-THANH-PHO-HO-CHI-MINH-HUTECH.png";
 
 export default function Hero() {
   return (

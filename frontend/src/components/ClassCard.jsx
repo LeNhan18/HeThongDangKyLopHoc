@@ -137,12 +137,24 @@ export default function ClassCard({
       <div className="class-actions">
         {isStudent && (
             classItem.is_registered ? (
-                <button
-                    className="unregister-btn"
-                    onClick={() => onUnregister && onUnregister(classItem.id)}
-                >
-                  Hủy đăng ký
-                </button>
+                <div className="student-actions">
+                  <button
+                      className="join-btn"
+                      onClick={() => {
+                        // TODO: Có thể thêm logic kiểm tra thời gian lớp học ở đây
+                        // Hiện tại cho phép vào lớp bất cứ lúc nào
+                        window.open(`/class/${classItem.id}/room`, '_blank');
+                      }}
+                  >
+                    🚪 Vào lớp
+                  </button>
+                  <button
+                      className="unregister-btn"
+                      onClick={() => onUnregister && onUnregister(classItem.id)}
+                  >
+                    Hủy đăng ký
+                  </button>
+                </div>
             ) : (
                 <button
                     className="register-btn"
@@ -156,6 +168,14 @@ export default function ClassCard({
 
         {canManage && (
             <div className="manage-buttons">
+              <button
+                  className="join-btn teacher-join"
+                  onClick={() => {
+                    window.open(`/class/${classItem.id}/room`, '_blank');
+                  }}
+              >
+                🏫 Vào lớp dạy
+              </button>
               <button className="edit-btn" onClick={handleEdit}>✏️ Sửa</button>
               <button className="schedule-btn" onClick={handleChangeSchedule}>📅 Đổi lịch</button>
               <button className="delete-btn" onClick={handleDelete}>🗑️ Xóa</button>

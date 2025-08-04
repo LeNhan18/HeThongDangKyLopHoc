@@ -9,70 +9,47 @@ from app.core.auth import get_current_user_debug
 from app.core.permissions import require_roles
 
 router = APIRouter()
-@router.post("/courses/", response_model=Course)
-def create_new_course(course: CourseCreate, db: Session = Depends(get_db), user: User = Depends(require_roles(["admin", "teacher"]))):
+
+@router.post("/courses/")
+def create_course(course: CourseCreate, db: Session = Depends(get_db), user: User = Depends(require_roles(["admin", "teacher"]))):
+    """Create a new course"""
     return course_service.create_course(db, course)
 
-@router.get("/courses/")  # Bỏ response_model=list[Course]
+@router.get("/courses/")
 def list_courses(db: Session = Depends(get_db)):
+    """Get all courses"""
     courses = course_service.get_courses(db)
-    # Return dictionary thay vì objects
-    return [
-        {
-            "id": course.id,
-            "name": course.name,
-            "description": course.description or "",
-            "image": course.image,
-            "classes": [],
-            "sections": []
-        }
-        for course in courses
-    ]
-@router.get("/courses/{course_id}", response_model=Course)
+    return courses
+
+@router.get("/courses/{course_id}")
 def get_course_detail(course_id: int, db: Session = Depends(get_db)):
+    """Get course by ID"""
     course = course_service.get_course(db, course_id)
     if not course:
-        raise HTTPException(status_code=404, detail="Không tìm thấy khóa học")
+        raise HTTPException(status_code=404, detail="Course not found")
     return course
 
-@router.put("/courses/{course_id}", response_model=Course)
-def update_course(course_id: int, course: CourseUpdate, db: Session = Depends(get_db), user: User = Depends(require_roles(["admin", "teacher"]))):
-    return course_service.update_course(db, course_id, course)
+@router.put("/courses/{course_id}")
+def update_course(
+    course_id: int, 
+    course: CourseUpdate, 
+    db: Session = Depends(get_db), 
+    user: User = Depends(require_roles(["admin", "teacher"]))
+):
+    """Update a course"""
+    updated_course = course_service.update_course(db, course_id, course)
+    if not updated_course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    return updated_course
 
 @router.delete("/courses/{course_id}")
-def delete_course(course_id: int, db: Session = Depends(get_db), user: User = Depends(require_roles(["admin", "teacher"]))):
-    return course_service.delete_course(db, course_id)
-
-@router.post("/courses/sample-data")
-def create_sample_courses(db: Session = Depends(get_db)):
-    """Tạo dữ liệu mẫu cho khóa học"""
-    sample_courses = [
-        {
-            "name": "Python Programming",
-            "description": "Khóa học lập trình Python từ cơ bản đến nâng cao"
-        },
-        {
-            "name": "React Development",
-            "description": "Khóa học phát triển ứng dụng web với React"
-        },
-        {
-            "name": "Database Design",
-            "description": "Khóa học thiết kế và quản lý cơ sở dữ liệu"
-        }
-    ]
-    
-    created_courses = []
-    for course_data in sample_courses:
-        try:
-            db_course = CourseModel(**course_data)
-            db.add(db_course)
-            created_courses.append(course_data["name"])
-        except Exception as e:
-            print(f"Lỗi tạo khóa học {course_data['name']}: {e}")
-    
-    try:
-        db.commit()
-        return {"message": f"Đã tạo {len(created_courses)} khóa học mẫu", "courses": created_courses}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Lỗi khi tạo dữ liệu mẫu: {e}")
+def delete_course(
+    course_id: int, 
+    db: Session = Depends(get_db), 
+    user: User = Depends(require_roles(["admin", "teacher"]))
+):
+    """Delete a course"""
+    success = course_service.delete_course(db, course_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Course not found")
+    return {"message": "Course deleted successfully"}

@@ -50,6 +50,58 @@ def get_all_classes(db: Session, user_id: int | None = None):
             "is_registered": is_registered
         })
     return result
+
+def get_class_by_id(db: Session, class_id: int, user_id: int | None = None):
+    """Lấy thông tin chi tiết của một lớp học"""
+    try:
+        print(f"DEBUG: Fetching class with ID: {class_id}")
+        cls = db.query(ClassModel).filter(ClassModel.id == class_id).first()
+        
+        if not cls:
+            print(f"DEBUG: Class {class_id} not found")
+            raise HTTPException(status_code=404, detail="Không tìm thấy lớp học")
+        
+        print(f"DEBUG: Found class: {cls.name}")
+        
+        is_registered = False
+        if user_id:
+            is_registered = db.query(Registration).filter_by(
+                class_id=cls.id,
+                student_id=user_id
+            ).first() is not None
+
+        # Convert schedule từ JSON object array sang string format
+        schedule_str = cls.schedule
+        if isinstance(cls.schedule, list):
+            schedule_str = '; '.join([
+                f"{slot['day']}: {slot['start']} - {slot['end']}" 
+                for slot in cls.schedule 
+                if isinstance(slot, dict) and 'day' in slot and 'start' in slot and 'end' in slot
+            ])
+        elif isinstance(cls.schedule, str):
+            schedule_str = cls.schedule
+        else:
+            schedule_str = str(cls.schedule)
+
+        # Ensure we return a simple dict
+        result = {
+            "id": int(cls.id),
+            "name": str(cls.name),
+            "max_students": int(cls.max_students),
+            "current_count": int(db.query(Registration).filter_by(class_id=cls.id).count()),
+            "schedule": str(schedule_str),
+            "course_id": int(cls.course_id) if cls.course_id else None,
+            "course": str(cls.course.name) if cls.course else None,
+            "is_registered": bool(is_registered)
+        }
+        
+        print(f"DEBUG: Returning result: {result}")
+        return result
+        
+    except Exception as e:
+        print(f"ERROR in get_class_by_id service: {e}")
+        raise
+
 def is_time_overlap(start1, end1, start2, end2):
     return start1 < end2 and end1 > start2
 
@@ -426,7 +478,7 @@ def get_classes_by_course(db: Session, course_id: int):
     }
 
 def get_class_students(db: Session, class_id: int):
-    """Lấy danh sách học viên trong lớp học"""
+    """Lấy danh sách học viên trong lớp học với trạng thái điểm danh"""
     # Kiểm tra lớp học tồn tại
     db_class = db.query(ClassModel).filter(ClassModel.id == class_id).first()
     if not db_class:
@@ -435,32 +487,37 @@ def get_class_students(db: Session, class_id: int):
     # Lấy danh sách đăng ký của lớp học
     from app.models.registration import Registration
     from app.models.user import User as UserModel
+    from datetime import date
     
     registrations = db.query(Registration).filter(Registration.class_id == class_id).all()
     
-    # Lấy thông tin học viên
+    # Lấy thông tin học viên với trạng thái điểm danh hôm nay
     students = []
+    today = date.today()
+    
     for reg in registrations:
         student = db.query(UserModel).filter(UserModel.id == reg.student_id).first()
         if student:
+            # Lấy trạng thái điểm danh hôm nay
+            attendance_today = db.query(Attendance).filter(
+                Attendance.class_id == class_id,
+                Attendance.student_id == student.id,
+                Attendance.date == today
+            ).first()
+            
+            attendance_status = attendance_today.status if attendance_today else 'absent'
+            
             students.append({
                 "id": student.id,
+                "user_id": student.id,  # Để tương thích với frontend
                 "name": student.name,
+                "full_name": student.name,  # Để tương thích với frontend
                 "email": student.email,
+                "attendance_status": attendance_status,
                 "registration_date": reg.created_at.isoformat() if hasattr(reg, 'created_at') else None
             })
     
-    return {
-        "class": {
-            "id": db_class.id,
-            "name": db_class.name,
-            "max_students": db_class.max_students,
-            "schedule": db_class.schedule
-        },
-        "students": students,
-        "total_students": len(students),
-        "available_slots": db_class.max_students - len(students)
-    }
+    return students  # Trả về mảng đơn giản để tương thích với frontend
 
 def get_class_students_count(db: Session, class_id: int):
     """Lấy số lượng học viên trong lớp học"""

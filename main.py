@@ -16,6 +16,8 @@ from app.api import (
     endpoints_dashboard,
     endpoints_upload,
     endpoints_ws,
+    endpoints_attendance,
+    endpoints_attendance_ws,
 )
 
 app = FastAPI()
@@ -35,7 +37,7 @@ app.add_middleware(
 
 # --- Include các router với prefix rõ ràng ---
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-app.include_router(endpoints_user.router)
+app.include_router(endpoints_user.router, prefix="/api/user", tags=["User"])
 app.include_router(endpoints_course.router)
 app.include_router(endpoints_class.router)
 app.include_router(endpoints_lesson.router)
@@ -44,6 +46,8 @@ app.include_router(endpoints_notification.router)
 app.include_router(endpoints_dashboard.router)
 app.include_router(endpoints_upload.router)
 app.include_router(endpoints_ws.router)
+app.include_router(endpoints_attendance.router)
+app.include_router(endpoints_attendance_ws.router)
 
 # --- Mount static ---
 app.mount("/static", StaticFiles(directory="static"), name="static")
