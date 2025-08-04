@@ -11,6 +11,17 @@ from app.api.endpoints_ws import send_notification_to_staff
 
 router = APIRouter()
 
+@router.get("/me")
+def get_current_user_info(current_user: User = Depends(get_current_user_debug)):
+    """Lấy thông tin user hiện tại"""
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "name": current_user.name,
+        "roles": current_user.roles,
+        "is_active": current_user.is_active
+    }
+
 @router.get("/test-users/")
 def test_list_users(db: Session = Depends(get_db)):
     """Endpoint test để lấy danh sách users không yêu cầu authentication"""

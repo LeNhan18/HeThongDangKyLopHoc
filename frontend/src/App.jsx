@@ -8,6 +8,7 @@ import CourseAdminPage from "./pages/CourseAdminPage";
 import AdminPage from "./pages/AdminPage";
 import CourseManagementPage from "./pages/CourseManagementPage";
 import CourseClassDetail from "./components/CourseClassDetail";
+import ClassRoom from "./pages/ClassRoom";
 import "./App.css";
 
 function HomePage({ user, onRequireAuth, onLogout }) {
@@ -64,6 +65,7 @@ function App() {
         <Route path="/admin/course-management" element={<CourseManagementPage user={user} />} />
         <Route path="/detail/course/:courseId" element={<CourseClassDetail courseId={window.location.pathname.split('/')[3]} />} />
         <Route path="/detail/class/:classId" element={<CourseClassDetail classId={window.location.pathname.split('/')[3]} />} />
+        <Route path="/class/:classId/room" element={<ClassRoom />} />
       </Routes>
     </Router>
   );

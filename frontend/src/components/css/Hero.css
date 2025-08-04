@@ -52,8 +52,8 @@
   color: #fff;
 }
 .hero-img {
-  width: 320px;
-  height: 320px;
+  width: 380px;
+  height: 380px;
   object-fit: cover;
   border-radius: 24px;
   margin-left: 32px;
@@ -67,7 +67,7 @@
   }
   .hero-img {
     margin: 24px auto 0 auto;
-    width: 220px;
-    height: 220px;
+    width: 240px;
+    height: 280px;
   }
 } 

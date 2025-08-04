@@ -72,6 +72,27 @@ async def register_class_old(class_id: int, db: Session = Depends(get_db), user:
     
     return result
 
+@router.get("/class/{class_id}")
+def get_class_by_id(
+    class_id: int, 
+    db: Session = Depends(get_db),
+    user: UserSchema = Depends(get_current_user_debug)
+):
+    """Lấy thông tin chi tiết của một lớp học"""
+    try:
+        result = class_service.get_class_by_id(db, class_id, user.id if user else None)
+        print(f"DEBUG: get_class_by_id result type: {type(result)}")
+        print(f"DEBUG: get_class_by_id result: {result}")
+        return result
+    except Exception as e:
+        print(f"ERROR in get_class_by_id: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@router.get("/class/{class_id}/test")
+def test_class_endpoint(class_id: int):
+    """Test endpoint đơn giản"""
+    return {"message": f"Test endpoint for class {class_id}", "status": "ok"}
+
 @router.get("/class/{class_id}/count")
 def get_class_count(class_id: int, db: Session = Depends(get_db)):
     return class_service.get_class_count(db, class_id)

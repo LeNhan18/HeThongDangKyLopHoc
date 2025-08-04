@@ -109,6 +109,59 @@
   opacity: 0.6;
 }
 
+.unregister-btn {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.unregister-btn:hover {
+  background: linear-gradient(135deg, #c82333, #a71e2a);
+  transform: translateY(-1px);
+}
+
+.join-btn {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 8px;
+}
+
+.join-btn:hover {
+  background: linear-gradient(135deg, #20c997, #17a2b8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.join-btn.teacher-join {
+  background: linear-gradient(135deg, #6f42c1, #8e44ad);
+  margin-bottom: 8px;
+  width: 100%;
+  margin-right: 0;
+}
+
+.join-btn.teacher-join:hover {
+  background: linear-gradient(135deg, #8e44ad, #9b59b6);
+  box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
+}
+
+.student-actions {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  align-items: center;
+}
+
 .manage-buttons {
   display: flex;
   gap: 8px;
@@ -183,6 +236,18 @@
   .class-actions {
     flex-direction: column;
     gap: 12px;
+  }
+  
+  .student-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+  
+  .join-btn, .unregister-btn, .register-btn {
+    width: 100%;
+    margin-right: 0;
+    justify-content: center;
   }
   
   .manage-buttons {
