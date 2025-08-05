@@ -7,6 +7,7 @@ import CourseDetailPage from "./pages/CourseDetailPage";
 import CourseAdminPage from "./pages/CourseAdminPage";
 import AdminPage from "./pages/AdminPage";
 import CourseManagementPage from "./pages/CourseManagementPage";
+import AdminLessons from "./pages/AdminLessons";
 import CourseClassDetail from "./components/CourseClassDetail";
 import ClassRoom from "./pages/ClassRoom";
 import "./App.css";
@@ -63,6 +64,7 @@ function App() {
         <Route path="/admin/courses" element={<CourseAdminPage user={user} />} />
         <Route path="/admin/users" element={<AdminPage user={user} />} />
         <Route path="/admin/course-management" element={<CourseManagementPage user={user} />} />
+        <Route path="/admin/lessons" element={<AdminLessons user={user} />} />
         <Route path="/detail/course/:courseId" element={<CourseClassDetail courseId={window.location.pathname.split('/')[3]} />} />
         <Route path="/detail/class/:classId" element={<CourseClassDetail classId={window.location.pathname.split('/')[3]} />} />
         <Route path="/class/:classId/room" element={<ClassRoom />} />
