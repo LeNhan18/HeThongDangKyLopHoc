@@ -14,7 +14,7 @@ export default function AuthForm({ onAuthSuccess }) {
 
   useEffect(() => {
     if (!isLogin) {
-      axios.get("http://localhost:8000/roles/").then(res => setRoles(res.data));
+      axios.get("http://localhost:8000/api/user/roles/").then(res => setRoles(res.data));
     }
   }, [isLogin]);
 
