@@ -43,6 +43,23 @@ export default function Header({ user, onLogout }) {
           )}
           {isAdmin && (
             <button 
+              onClick={() => navigate("/admin/lessons")} 
+              style={{
+                marginLeft:8,
+                padding:'4px 12px',
+                borderRadius:6,
+                border:'none',
+                background:'#9c27b0',
+                color:'#fff',
+                fontWeight:600,
+                cursor:'pointer'
+              }}
+            >
+              Chương & Bài học
+            </button>
+          )}
+          {isAdmin && (
+            <button 
               onClick={() => navigate("/admin/users")} 
               style={{
                 marginLeft:8,

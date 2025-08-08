@@ -505,7 +505,11 @@ def get_class_students(db: Session, class_id: int):
                 Attendance.date == today
             ).first()
             
-            attendance_status = attendance_today.status if attendance_today else 'absent'
+            # Đảm bảo trả về string, không phải enum
+            if attendance_today:
+                attendance_status = attendance_today.status.value if hasattr(attendance_today.status, 'value') else str(attendance_today.status)
+            else:
+                attendance_status = 'absent'
             
             students.append({
                 "id": student.id,
