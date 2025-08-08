@@ -1,0 +1,345 @@
+/* AttendancePage.css */
+.attendance-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 50vh;
+  color: white;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.attendance-header {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 30px;
+  margin-bottom: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.class-info h1 {
+  color: white;
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.class-details {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.class-details span {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  padding: 8px 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.error-message {
+  background: rgba(255, 82, 82, 0.2);
+  border: 1px solid rgba(255, 82, 82, 0.4);
+  color: #ff5252;
+  padding: 15px;
+  border-radius: 10px;
+  margin: 20px 0;
+  font-weight: 500;
+}
+
+.attendance-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.stat-item {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stat-item.present .stat-number { color: #4caf50; }
+.stat-item.late .stat-number { color: #ff9800; }
+.stat-item.absent .stat-number { color: #f44336; }
+.stat-item.total .stat-number { color: #2196f3; }
+
+.attendance-controls {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  justify-content: center;
+}
+
+.btn-join-classroom,
+.btn-save-attendance {
+  padding: 15px 30px;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-join-classroom {
+  background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+  color: white;
+}
+
+.btn-join-classroom:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+}
+
+.btn-save-attendance {
+  background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+  color: white;
+}
+
+.btn-save-attendance:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 210, 255, 0.4);
+}
+
+.students-list {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.list-header {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px 30px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  font-weight: 600;
+  color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.student-item {
+  padding: 25px 30px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  align-items: center;
+  transition: background-color 0.3s ease;
+}
+
+.student-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.student-item:last-child {
+  border-bottom: none;
+}
+
+.student-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.student-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.student-details h3 {
+  color: white;
+  margin: 0 0 5px 0;
+  font-size: 1.1rem;
+}
+
+.student-details p {
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.btn-join-class {
+  padding: 8px 15px;
+  background: linear-gradient(45deg, #32cd32, #228b22);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  margin-left: 15px;
+}
+
+.btn-join-class:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(50, 205, 50, 0.4);
+}
+
+.attendance-options {
+  display: flex;
+  gap: 10px;
+}
+
+.attendance-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 15px;
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.attendance-option:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.attendance-option input[type="radio"] {
+  display: none;
+}
+
+.option-label {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.attendance-option input[type="radio"]:checked + .option-label.present {
+  color: #4caf50;
+}
+
+.attendance-option input[type="radio"]:checked + .option-label.late {
+  color: #ff9800;
+}
+
+.attendance-option input[type="radio"]:checked + .option-label.absent {
+  color: #f44336;
+}
+
+.attendance-option:has(input[type="radio"]:checked) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .attendance-page {
+    padding: 15px;
+  }
+
+  .class-info h1 {
+    font-size: 2rem;
+  }
+
+  .class-details {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .attendance-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .attendance-controls {
+    flex-direction: column;
+  }
+
+  .student-item {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .attendance-options {
+    justify-content: center;
+  }
+
+  .list-header {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .attendance-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .attendance-options {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .student-info {
+    flex-direction: column;
+    text-align: center;
+  }
+}

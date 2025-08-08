@@ -1,0 +1,142 @@
+### Test Attendance API Endpoints
+
+# Biến môi trường
+@baseUrl = http://localhost:8000
+@token = your_jwt_token_here
+@classId = 1
+
+### 1. Lấy thông tin lớp học
+GET {{baseUrl}}/api/classes/{{classId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 2. Lấy danh sách học viên trong lớp
+GET {{baseUrl}}/api/classes/{{classId}}/students
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 3. Lưu điểm danh hàng loạt
+POST {{baseUrl}}/api/classes/{{classId}}/attendance
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "class_id": {{classId}},
+  "date": "2024-12-20T10:00:00",
+  "attendance": [
+    {
+      "student_id": 1,
+      "status": "present"
+    },
+    {
+      "student_id": 2,
+      "status": "late"
+    },
+    {
+      "student_id": 3,
+      "status": "absent"
+    }
+  ]
+}
+
+### 4. Lấy lịch sử điểm danh
+GET {{baseUrl}}/api/classes/{{classId}}/attendance/history
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 5. Lấy lịch sử điểm danh với filter
+GET {{baseUrl}}/api/classes/{{classId}}/attendance/history?start_date=2024-12-01T00:00:00&end_date=2024-12-31T23:59:59&status=present
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 6. Lấy thống kê điểm danh
+GET {{baseUrl}}/api/classes/{{classId}}/attendance/stats
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 7. Lấy thống kê điểm danh theo khoảng thời gian
+GET {{baseUrl}}/api/classes/{{classId}}/attendance/stats?start_date=2024-12-01&end_date=2024-12-31
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 8. Ghi nhận học viên tham gia lớp học
+POST {{baseUrl}}/api/classes/{{classId}}/join
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "student_id": 1,
+  "join_time": "2024-12-20T10:05:00",
+  "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+}
+
+### 9. Cập nhật thông tin điểm danh
+PUT {{baseUrl}}/api/classes/{{classId}}/attendance/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "present",
+  "notes": "Học viên đã tham gia đầy đủ"
+}
+
+### 10. Tạo phiên học mới
+POST {{baseUrl}}/api/classes/{{classId}}/sessions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "class_id": {{classId}},
+  "session_date": "2024-12-20T10:00:00",
+  "start_time": "2024-12-20T10:00:00",
+  "lesson_topic": "Python Basics - Variables and Data Types",
+  "description": "Introduction to Python variables, data types, and basic operations",
+  "is_active": true,
+  "virtual_room_id": "room_123456"
+}
+
+### 11. Lấy danh sách phiên học
+GET {{baseUrl}}/api/classes/{{classId}}/sessions
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 12. Lấy phiên học đang hoạt động
+GET {{baseUrl}}/api/classes/{{classId}}/sessions/active
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### 13. Test WebSocket Connection (trong JavaScript console)
+# const ws = new WebSocket('ws://localhost:8000/ws/attendance/1?token=your_jwt_token');
+# ws.onopen = () => console.log('Connected');
+# ws.onmessage = (event) => console.log('Message:', JSON.parse(event.data));
+# ws.send(JSON.stringify({type: 'ping'}));
+
+### 14. Đăng nhập để lấy token (nếu cần)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "instructor@example.com",
+  "password": "password123"
+}
+
+### 15. Test với dữ liệu không hợp lệ
+POST {{baseUrl}}/api/classes/999/attendance
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "class_id": 999,
+  "date": "2024-12-20T10:00:00",
+  "attendance": [
+    {
+      "student_id": 1,
+      "status": "invalid_status"
+    }
+  ]
+}
+
+### 16. Test quyền truy cập (với token của student)
+GET {{baseUrl}}/api/classes/{{classId}}/students
+Authorization: Bearer student_token_here
+Content-Type: application/json
