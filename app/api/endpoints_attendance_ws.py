@@ -13,7 +13,6 @@ class AttendanceConnectionManager:
     def __init__(self):
         # Lưu trữ connections theo class_id
         self.active_connections: Dict[int, List[WebSocket]] = {}
-        
     async def connect(self, websocket: WebSocket, class_id: int):
         await websocket.accept()
         if class_id not in self.active_connections:
