@@ -23,7 +23,7 @@ class AttendanceCRUD:
             device_info=attendance.device_info,
             notes=attendance.notes,
             marked_by=marked_by,
-            attended=attendance.status.value == "present"  # For backward compatibility
+            attended=attendance.status.value == "present"
         )
         db.add(db_attendance)
         db.commit()

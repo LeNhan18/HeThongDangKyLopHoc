@@ -9,7 +9,7 @@ from app import CRUD
 router = APIRouter()
 
 # ==============================
-# 1️⃣ Quản lý số lượng đăng ký theo lớp
+#  Quản lý số lượng đăng ký theo lớp
 # ==============================
 class ClassCountManager:
     def __init__(self):
@@ -45,7 +45,7 @@ async def websocket_class_count(websocket: WebSocket, class_id: int, db: Session
 
 
 # ==============================
-# 2️⃣ Quản lý thông báo theo class
+#  Quản lý thông báo theo class
 # ==============================
 class ClassNotificationManager:
     def __init__(self):
@@ -82,7 +82,7 @@ async def websocket_notify_class(websocket: WebSocket, class_id: int):
 
 
 # ==============================
-# 3️⃣ Quản lý thông báo Admin/Teacher
+#  Quản lý thông báo Admin/Teacher
 # ==============================
 class AdminNotificationManager:
     def __init__(self):
@@ -145,7 +145,7 @@ async def websocket_teacher_notifications(websocket: WebSocket):
 
 
 # ==============================
-# 4️⃣ Thông báo cá nhân cho 1 user
+# Thông báo cá nhân cho 1 user
 # ==============================
 class PersonalNotificationManager:
     def __init__(self):
@@ -182,7 +182,7 @@ async def websocket_user_notifications(websocket: WebSocket, user_id: int):
 
 
 # ==============================
-# 5️⃣ Hàm tiện ích gửi thông báo
+#Hàm tiện ích gửi thông báo
 # ==============================
 async def send_notification_to_staff(notification_type: str, message: str, data: dict = None):
     notification = {

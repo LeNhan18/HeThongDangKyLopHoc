@@ -20,7 +20,7 @@ def get_all_classes(
     db: Session = Depends(get_db),
     user: UserSchema = Depends(get_current_user_debug)
 ):
-    print(f"🔍 DEBUG get_all_classes: User ID = {user.id if user else 'None'}")
+    print(f" DEBUG get_all_classes: User ID = {user.id if user else 'None'}")
     return class_service.get_all_classes(db, user.id if user else None)
 
 @router.post("/register_class/{class_id}")
@@ -30,10 +30,10 @@ async def register_class_endpoint(
     current_user: UserSchema = Depends(get_current_user_debug)
 ):
     """Debug registration endpoint"""
-    print(f"🔍 DEBUG: Registration endpoint called")
-    print(f"🔍 DEBUG: Class ID: {class_id}")
-    print(f"🔍 DEBUG: Current user from dependency: ID={current_user.id}, Email={current_user.email}")
-    print(f"🔍 DEBUG: User roles: {current_user.roles}")
+    print(f" DEBUG: Registration endpoint called")
+    print(f" DEBUG: Class ID: {class_id}")
+    print(f" DEBUG: Current user from dependency: ID={current_user.id}, Email={current_user.email}")
+    print(f" DEBUG: User roles: {current_user.roles}")
 
     result = class_service.register_class(db, class_id, current_user)
     # Gửi thông báo cho admin/teacher khi có đăng ký mới
@@ -131,7 +131,7 @@ async def change_class_schedule(
                     }
                 )
             
-            print(f"🔔 Đã gửi thông báo thay đổi lịch cho {len(registrations)} học viên")
+            print(f" Đã gửi thông báo thay đổi lịch cho {len(registrations)} học viên")
         
     except Exception as e:
         print(f"Lỗi gửi thông báo thay đổi lịch: {e}")
@@ -236,16 +236,16 @@ async def unregister_class(class_id: int ,
                      current_user: UserSchema = Depends(get_current_user_debug)
                      ):
     """Hủy đăng ký lớp học"""
-    print(f"🔍 DEBUG: Unregister endpoint called")
-    print(f"🔍 DEBUG: Class ID: {class_id}")
-    print(f"🔍 DEBUG: Current user: ID={current_user.id}, Email={current_user.email}")
+    print(f" DEBUG: Unregister endpoint called")
+    print(f" DEBUG: Class ID: {class_id}")
+    print(f"DEBUG: Current user: ID={current_user.id}, Email={current_user.email}")
     
     result = class_service.unregister_class(db, class_id, current_user)
-    print(f"🔍 DEBUG: Unregister result: {result}")
+    print(f"DEBUG: Unregister result: {result}")
     
     # Gửi thông báo cho admin/teacher khi có hủy đăng ký
     try:
-        print(f"🔍 DEBUG: Sending notification...")
+        print(f" DEBUG: Sending notification...")
         await send_notification_to_staff(
             notification_type="unregister",
             message=f"Học viên {current_user.email} đã hủy đăng ký lớp '{result.get('class_name', 'N/A')}'",
@@ -257,7 +257,7 @@ async def unregister_class(class_id: int ,
                 "current_count": result.get('current_count')
             }
         )
-        print(f"🔍 DEBUG: Notification sent successfully")
+        print(f" DEBUG: Notification sent successfully")
     except Exception as e:
         print(f"Lỗi gửi thông báo hủy đăng ký: {e}")
     
