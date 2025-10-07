@@ -111,7 +111,7 @@ async def attendance_websocket(
                     
                 elif message.get("type") == "attendance_session_started":
                     # Admin/Teacher mở điểm danh - broadcast tới tất cả students
-                    print(f"🔍 DEBUG: Broadcasting attendance_session_started to class {class_id}")
+                    print(f"DEBUG: Broadcasting attendance_session_started to class {class_id}")
                     await attendance_manager.send_to_class({
                         "type": "attendance_session_started",
                         "class_id": class_id,
@@ -120,7 +120,7 @@ async def attendance_websocket(
                     
                 elif message.get("type") == "attendance_session_ended":
                     # Admin/Teacher đóng điểm danh - broadcast tới tất cả students
-                    print(f"🔍 DEBUG: Broadcasting attendance_session_ended to class {class_id}")
+                    print(f" DEBUG: Broadcasting attendance_session_ended to class {class_id}")
                     await attendance_manager.send_to_class({
                         "type": "attendance_session_ended", 
                         "class_id": class_id,
@@ -152,10 +152,10 @@ async def attendance_websocket(
                         finally:
                             db.close()
                     except Exception as e:
-                        print(f"🔍 DEBUG: Error getting student name: {e}")
+                        print(f" DEBUG: Error getting student name: {e}")
                         student_name = f"Student {student_id}"
                     
-                    print(f"🔍 DEBUG: Broadcasting self_attendance_marked - Student: {student_name}, Status: {status}")
+                    print(f" DEBUG: Broadcasting self_attendance_marked - Student: {student_name}, Status: {status}")
                     await attendance_manager.send_to_class({
                         "type": "self_attendance_marked",
                         "student_id": student_id,
@@ -175,11 +175,11 @@ async def attendance_websocket(
                     
                 elif message.get("type") == "join":
                     # User joining classroom
-                    print(f"🔍 DEBUG: User joining class {class_id}")
+                    print(f" DEBUG: User joining class {class_id}")
                     
                 elif message.get("type") == "leave":
                     # User leaving classroom  
-                    print(f"🔍 DEBUG: User leaving class {class_id}")
+                    print(f"DEBUG: User leaving class {class_id}")
                     
                 elif message.get("type") == "ping":
                     # Heartbeat

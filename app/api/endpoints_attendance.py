@@ -103,7 +103,7 @@ async def get_class_students(
         Registration.class_id == class_id
     ).all()
     
-    print(f"🔍 DEBUG: Found {len(registrations)} registrations for class {class_id}")
+    print(f" DEBUG: Found {len(registrations)} registrations for class {class_id}")
     
     students = []
     for reg in registrations:
@@ -118,11 +118,11 @@ async def get_class_students(
                 "email": user.email,
                 "attendance_status": "pending"  # default status
             })
-            print(f"🔍 DEBUG: Added student {user.name} ({user.email})")
+            print(f" DEBUG: Added student {user.name} ({user.email})")
     
     # Nếu không có registrations, tạo mock data để test
     if len(students) == 0:
-        print(f"🔍 DEBUG: No registrations found, creating mock students")
+        print(f" DEBUG: No registrations found, creating mock students")
         # Lấy một vài users từ database để làm mock data
         all_users = db.query(UserModel).limit(3).all()
         for user in all_users:
@@ -134,7 +134,7 @@ async def get_class_students(
                 "email": user.email,
                 "attendance_status": "pending"
             })
-            print(f"🔍 DEBUG: Added mock student {user.name} ({user.email})")
+            print(f" DEBUG: Added mock student {user.name} ({user.email})")
     
     return students
 
@@ -185,7 +185,7 @@ async def mark_self_attendance(
     current_user: User = Depends(get_current_user)
 ):
     """Cho phép học viên tự điểm danh"""
-    print(f"🔍 DEBUG: Student self-attendance - User: {current_user.id}, Class: {class_id}")
+    print(f"DEBUG: Student self-attendance - User: {current_user.id}, Class: {class_id}")
     
     # Kiểm tra lớp học
     class_info = db.query(Class).filter(Class.id == class_id).first()
@@ -203,8 +203,8 @@ async def mark_self_attendance(
     
     try:
         # Debug: In ra cấu trúc dữ liệu
-        print(f"🔍 DEBUG: attendance_data.attendance: {attendance_data.attendance}")
-        print(f"🔍 DEBUG: First attendance item: {attendance_data.attendance[0]}")
+        print(f" DEBUG: attendance_data.attendance: {attendance_data.attendance}")
+        print(f" DEBUG: First attendance item: {attendance_data.attendance[0]}")
         
         # Đảm bảo chỉ điểm danh cho chính mình
         first_attendance = attendance_data.attendance[0]
@@ -244,11 +244,11 @@ async def mark_self_attendance(
         db.commit()
         db.refresh(new_attendance)
         
-        print(f"🔍 DEBUG: Self-attendance created successfully: {new_attendance.id}")
+        print(f" DEBUG: Self-attendance created successfully: {new_attendance.id}")
         return [new_attendance]
         
     except Exception as e:
-        print(f"🔍 DEBUG: Error in self-attendance: {str(e)}")
+        print(f" DEBUG: Error in self-attendance: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/{class_id}/attendance/history", response_model=List[AttendanceResponse])

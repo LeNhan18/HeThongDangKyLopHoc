@@ -50,7 +50,7 @@ const ClassStudentsList = ({ classId, onClose, onUnregister, onRegister }) => {
         <div className="modal-overlay">
           <div className="modal">
             <div className="error-message">
-              <h3>❌ Lỗi</h3>
+              <h3> Lỗi</h3>
               <p>{error}</p>
               <button className="btn btn-primary" onClick={fetchStudentsData}>
                 Thử lại
@@ -148,7 +148,7 @@ const ClassStudentsList = ({ classId, onClose, onUnregister, onRegister }) => {
               Đóng
             </button>
             <button className="btn btn-primary" onClick={fetchStudentsData}>
-              🔄 Làm mới
+               Làm mới
             </button>
             {studentsData && studentsData.class && (
               studentsData.class.is_registered ? (
